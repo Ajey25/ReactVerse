@@ -29,7 +29,7 @@ export default function Components() {
         {/* 🔹 Sidebar */}
         <aside
           className={`
-            fixed sm:static z-10
+            fixed sm:static z-50
             w-64 h-screen
             transform transition-transform duration-300
             ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
@@ -50,11 +50,14 @@ export default function Components() {
               {componentList.map((comp) => (
                 <button
                   key={comp.id}
-                  onClick={() => {
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
                     setActive(comp);
                     setSidebarOpen(false);
                   }}
-                  className="w-full text-left px-3 py-1 rounded-lg transition-all"
+                  className="w-full text-left px-3 py-1 rounded-lg transition-all cursor-pointer"
                   style={{
                     backgroundColor:
                       active.id === comp.id ? "var(--card-bg)" : "transparent",
@@ -103,7 +106,7 @@ export default function Components() {
                   backgroundColor: "var(--card-bg)",
                 }}
               >
-                <ActiveComponent />
+                <ActiveComponent key={active.id} />
               </div>
             </section>
 

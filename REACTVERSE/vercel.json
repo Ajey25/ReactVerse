@@ -14,6 +14,14 @@
       "destination": "/api/index.js"
     },
     {
+      "source": "/auth/signup",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/auth/login",
+      "destination": "/api/index.js"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
