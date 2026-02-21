@@ -47,7 +47,7 @@ app.get("/test", (req, res) => {
   res.json({ message: "Server is alive", timestamp: new Date().toISOString() });
 });
 
-app.use("/auth", authRoutes);
+app.use("/api/auth", authRoutes);
 app.use("/api/lessons", lessonRoutes);
 app.use("/api/progress", progressRoutes);
 app.use("/api/interview", interviewRoutes);
