@@ -3,7 +3,7 @@
 export default function GoogleButton() {
   const SERVER_URL = import.meta.env.VITE_BASE_URL;
   const handleGoogleLogin = () => {
-    window.location.href = `${SERVER_URL}/auth/google`;
+    window.location.href = `${SERVER_URL}/api/auth/google`;
   };
 
   return (

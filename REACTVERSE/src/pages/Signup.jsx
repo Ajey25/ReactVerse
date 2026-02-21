@@ -60,7 +60,7 @@ export default function Signup() {
   };
 
   const googleLogin = () => {
-    window.location.href = `${import.meta.env.VITE_BASE_URL}/auth/google`;
+    window.location.href = `${import.meta.env.VITE_BASE_URL}/api/auth/google`;
   };
 
   return (

@@ -45,7 +45,7 @@ export default function Login() {
       // If backend tells Google-only user to login via Google
       if (err.response?.data?.requiresGoogle) {
         toast.error(
-          "This account was created with Google. Please login with Google."
+          "This account was created with Google. Please login with Google.",
         );
         return;
       }
@@ -54,7 +54,7 @@ export default function Login() {
     }
   };
   const googleLogin = () => {
-    window.location.href = `${import.meta.env.VITE_BASE_URL}/auth/google`;
+    window.location.href = `${import.meta.env.VITE_BASE_URL}/api/auth/google`;
   };
 
   return (
