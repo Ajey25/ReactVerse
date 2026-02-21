@@ -44,6 +44,10 @@ import codingProgressRoutes from "./routes/codingProgressRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import leaderboardRoutes from "./routes/leaderboardRoutes.js";
 
+app.get("/test", (req, res) => {
+  res.send("Server is alive");
+});
+
 app.use("/auth", authRoutes);
 app.use("/api/lessons", lessonRoutes);
 app.use("/api/progress", progressRoutes);
@@ -64,8 +68,5 @@ app.get(/^(?!\/api).*$/, (req, res) => {
   res.sendFile(path.resolve(__dirname, "../REACTVERSE/dist/index.html"));
 });
 
-app.get("/test", (req, res) => {
-  res.send("Server is alive");
-});
 // Server
 export default app;
