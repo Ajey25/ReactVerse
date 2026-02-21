@@ -1,0 +1,5 @@
+{
+  "buildCommand": "cd REACTVERSE && npm install && npm run build",
+  "outputDirectory": "REACTVERSE/dist",
+  "framework": null
+}
