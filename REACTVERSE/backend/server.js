@@ -64,5 +64,8 @@ app.get(/^(?!\/api).*$/, (req, res) => {
   res.sendFile(path.resolve(__dirname, "../REACTVERSE/dist/index.html"));
 });
 
+app.get("/test", (req, res) => {
+  res.send("Server is alive");
+});
 // Server
 export default app;
