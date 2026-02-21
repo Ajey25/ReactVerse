@@ -13,23 +13,44 @@ dotenv.config();
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
 // Middlewares
 app.use(express.json());
 app.use(cookieParser());
 app.use(
   cors({
-    origin: process.env.CLIENT_URL,
+    origin: process.env.CLIENT_URL || true,
     credentials: true,
   }),
 );
 
 app.use(passport.initialize());
 
-// Connect MongoDB
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB connected"))
-  .catch((err) => console.log(err));
+// Connect MongoDB - with connection caching for serverless
+let cachedDb = null;
+
+async function connectToDatabase() {
+  if (cachedDb) return cachedDb;
+
+  try {
+    cachedDb = await mongoose.connect(process.env.MONGO_URI);
+    console.log("MongoDB connected");
+    return cachedDb;
+  } catch (err) {
+    console.error("MongoDB connection error:", err);
+    throw err;
+  }
+}
+
+// Call this in routes that need DB
+app.use(async (req, res, next) => {
+  try {
+    await connectToDatabase();
+    next();
+  } catch (err) {
+    res.status(500).json({ error: "Database connection failed" });
+  }
+});
 
 // Routes
 import authRoutes from "./routes/authroutes.js";
@@ -60,13 +81,7 @@ app.use("/api/codingprogress", codingProgressRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/leaderboard", leaderboardRoutes);
 
-// Serve static files from frontend dist folder
-app.use(express.static(path.resolve(__dirname, "dist")));
+// In serverless, we don't serve static files - Vercel handles that
+// Remove or comment out the static file serving
 
-// Fallback to index.html for SPA routing
-app.get(/^(?!\/api).*$/, (req, res) => {
-  res.sendFile(path.resolve(__dirname, "../REACTVERSE/dist/index.html"));
-});
-
-// Server
 export default app;
