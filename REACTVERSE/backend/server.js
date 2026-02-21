@@ -44,6 +44,11 @@ async function connectToDatabase() {
 
 // Call this in routes that need DB
 app.use(async (req, res, next) => {
+  // Skip database for static files and test route
+  if (req.path === "/test" || req.path.startsWith("/assets/")) {
+    return next();
+  }
+
   try {
     await connectToDatabase();
     next();
@@ -81,7 +86,32 @@ app.use("/api/codingprogress", codingProgressRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/leaderboard", leaderboardRoutes);
 
-// In serverless, we don't serve static files - Vercel handles that
-// Remove or comment out the static file serving
+// 🔴 IMPORTANT: Serve static files in production
+if (process.env.NODE_ENV === "production") {
+  // In Vercel, the dist folder will be at the root level
+  const distPath = path.join(process.cwd(), "dist");
+  console.log("Serving static files from:", distPath);
+
+  // Serve static assets
+  app.use(express.static(distPath));
+
+  // Handle client-side routing - serve index.html for all non-API routes
+  app.get("*", (req, res) => {
+    // Skip API and auth routes
+    if (!req.path.startsWith("/api") && !req.path.startsWith("/auth")) {
+      res.sendFile(path.join(distPath, "index.html"));
+    }
+  });
+} else {
+  // Development mode - you might still want to serve from REACTVERSE/dist
+  const devDistPath = path.join(__dirname, "../REACTVERSE/dist");
+  app.use(express.static(devDistPath));
+
+  app.get("*", (req, res) => {
+    if (!req.path.startsWith("/api") && !req.path.startsWith("/auth")) {
+      res.sendFile(path.join(devDistPath, "index.html"));
+    }
+  });
+}
 
 export default app;
