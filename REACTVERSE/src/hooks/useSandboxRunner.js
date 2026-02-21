@@ -1,149 +1,140 @@
+import { useCallback } from "react";
+
 export default function useSandboxRunner() {
-  function run(code, tests) {
+  const run = useCallback(async (code, tests, componentName) => {
     return new Promise((resolve) => {
-      const iframe = document.getElementById("preview");
+      const iframe = document.createElement("iframe");
+      iframe.style.display = "none";
+      iframe.sandbox = "allow-scripts";
+      document.body.appendChild(iframe);
 
-      // Clean up previous listener
-      window.onmessage = null;
+      const safeTests = JSON.stringify(tests);
 
-      // Remove ES6 module syntax from code
       const cleanedCode = code
-        .replace(/import\s+.*?from\s+['"].*?['"];?/g, "") // Remove imports
-        .replace(/export\s+default\s+/g, "") // Remove export default
-        .replace(/export\s+/g, ""); // Remove export
+        .replace(/^\s*import\s+.*$/gm, "")
+        .replace(/^\s*export\s+default\s+/gm, "");
 
-      iframe.srcdoc = `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta charset="UTF-8">
-            <style>
-              body {
-                margin: 0;
-                padding: 20px;
-                font-family: system-ui, -apple-system, sans-serif;
-                background: #f8fafc;
-              }
-              .counter-container {
-                max-width: 400px;
-                margin: 0 auto;
-                padding: 2rem;
-                background: white;
-                border-radius: 12px;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-              }
-              .counter-container h2 {
-                text-align: center;
-                font-size: 2rem;
-                color: #1e293b;
-                margin-bottom: 1.5rem;
-              }
-              .button-group {
-                display: flex;
-                gap: 0.5rem;
-                flex-direction: column;
-              }
-              .btn {
-                padding: 0.75rem 1.5rem;
-                font-size: 1rem;
-                font-weight: 600;
-                border: none;
-                border-radius: 8px;
-                cursor: pointer;
-                transition: all 0.2s;
-              }
-              .btn-increment {
-                background: #3b82f6;
-                color: white;
-              }
-              .btn-increment:hover {
-                background: #2563eb;
-              }
-              .btn-decrement {
-                background: #ef4444;
-                color: white;
-              }
-              .btn-decrement:hover {
-                background: #dc2626;
-              }
-              .btn-reset {
-                background: #6b7280;
-                color: white;
-              }
-              .btn-reset:hover {
-                background: #4b5563;
-              }
-            </style>
-          </head>
-          <body>
-            <div id="root"></div>
-            <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-            <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-            <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-            
-            <script type="text/babel">
-              const { useState } = React;
-              
-              ${cleanedCode}
-              
-              // Initial render
-              const root = ReactDOM.createRoot(document.getElementById('root'));
-              root.render(<Counter />);
-              
-              // Expose remount function globally
-              window.remountCounter = function() {
-                root.render(<Counter />);
-              };
-            </script>
-            
-            <script>
-              (async function runTests() {
-                const tests = ${JSON.stringify(tests)};
-                const results = [];
-                
-                // Wait for React to render
-                await new Promise(r => setTimeout(r, 300));
-                
-                for (const test of tests) {
-                  try {
-                    // Remount component before each test for isolation
-                    window.remountCounter();
-                    await new Promise(r => setTimeout(r, 300));
-                    
-                    await eval(\`(async () => { \${test.script} })()\`);
-                    results.push({ 
-                      id: test.id, 
-                      desc: test.desc, 
-                      pass: true 
-                    });
-                  } catch (error) {
-                    results.push({ 
-                      id: test.id, 
-                      desc: test.desc, 
-                      pass: false,
-                      error: error.message
-                    });
-                  }
-                }
-                
-                window.parent.postMessage(results, '*');
-              })();
-            </script>
-          </body>
-        </html>
+      const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script>
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+  </script>
+
+  <script>
+    async function runAllTests() {
+      const results = [];
+      const tests = ${safeTests};
+      const componentName = "${componentName}";
+
+      try {
+        const compiled = Babel.transform(\`
+          const { useState } = React;
+          ${cleanedCode}
+        \`, {
+          presets: ["react"],
+          sourceType: "script"
+        }).code;
+
+        // Execute user component
+        eval(compiled);
+
+        const root = ReactDOM.createRoot(
+          document.getElementById("root")
+        );
+
+        const Component = eval(componentName);
+        if (typeof Component !== "function") {
+          throw new Error(componentName + " component is not defined");
+        }
+
+        root.render(React.createElement(Component));
+        
+        // Wait for initial render
+        await sleep(500);
+      } catch (err) {
+        return [{
+          id: 0,
+          desc: "Compile / Runtime error",
+          pass: false,
+          error: err.message
+        }];
+      }
+
+      // 🧪 Run tests sequentially
+      for (const t of tests) {
+        try {
+          const fn = new Function(
+            "sleep",
+            \`return (async () => { \${t.script} })()\`
+          );
+          await fn(sleep);
+
+          results.push({
+            id: t.id,
+            desc: t.desc,
+            pass: true
+          });
+        } catch (err) {
+          results.push({
+            id: t.id,
+            desc: t.desc,
+            pass: false,
+            error: err.message
+          });
+        }
+      }
+
+      return results;
+    }
+
+    (async () => {
+      const results = await runAllTests();
+      parent.postMessage({ type: "TEST_RESULTS", results }, "*");
+    })();
+  </script>
+</body>
+</html>
       `;
 
-      // Set up message listener with timeout
-      const timeout = setTimeout(() => {
-        resolve([{ id: 0, desc: "Test timeout", pass: false }]);
-      }, 10000);
-
-      window.onmessage = (e) => {
-        clearTimeout(timeout);
-        resolve(e.data);
+      const handleMessage = (event) => {
+        if (event.data?.type === "TEST_RESULTS") {
+          window.removeEventListener("message", handleMessage);
+          document.body.removeChild(iframe);
+          resolve(event.data.results);
+        }
       };
+
+      window.addEventListener("message", handleMessage);
+
+      // Timeout after 10 seconds
+      setTimeout(() => {
+        window.removeEventListener("message", handleMessage);
+        if (document.body.contains(iframe)) {
+          document.body.removeChild(iframe);
+        }
+        resolve([
+          {
+            id: 0,
+            desc: "Test timeout",
+            pass: false,
+            error: "Tests took too long to complete",
+          },
+        ]);
+      }, 20000);
+
+      iframe.srcdoc = html;
     });
-  }
+  }, []);
 
   return { run };
 }

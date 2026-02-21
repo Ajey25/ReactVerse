@@ -5,6 +5,9 @@ import Lesson from "../models/Lesson.js";
 import InterviewProgress from "../models/InterviewProgress.js";
 import InterviewQuestion from "../models/InterviewQuestion.js";
 import UserAptiProgress from "../models/UserAptiProgress.js";
+import CodingProgress from "../models/CodingProgress.js";
+import AptitudeQuestion from "../models/AptitudeQuestion.js";
+import { calculateTotalXP } from "./calculateTotalXP.js";
 
 export const markLessonComplete = async (req, res) => {
   try {
@@ -36,12 +39,8 @@ export const markLessonComplete = async (req, res) => {
       xp: 10,
     });
 
-    // XP = every lesson * 10
-    const completed = await UserProgress.countDocuments({ userId });
-    const totalXP = completed * 10;
-
-    // Update User model
-    await User.findByIdAndUpdate(userId, { xp: totalXP });
+    // 🔥 SYNC XP IMMEDIATELY - Updates both xp and totalXP
+    const totalXP = await calculateTotalXP(userId);
 
     res.json({
       success: true,
@@ -93,27 +92,35 @@ export const getUserStats = async (req, res) => {
     // ======================================================
     // 2. APTITUDE PROGRESS (LEVEL WISE)
     // ======================================================
-    const aptiProgress = await UserAptiProgress.find({ userId }).sort({
-      level: 1,
-    });
+
+    // 🔥 SYSTEM TOTALS
+    const aptitudeQuestions = await AptitudeQuestion.find({ isActive: true });
+
+    let aptitudeTotalByLevel = { 1: 0, 2: 0, 3: 0 };
+
+    for (let q of aptitudeQuestions) {
+      aptitudeTotalByLevel[q.level] += q.xp;
+    }
+
+    let totalAptitudeXP =
+      aptitudeTotalByLevel[1] +
+      aptitudeTotalByLevel[2] +
+      aptitudeTotalByLevel[3];
+
+    // 🔥 USER PROGRESS
+    const aptiProgress = await UserAptiProgress.find({ userId });
 
     let aptitudeXP = 0;
-    let totalAptitudeXP = 0;
 
     let aptitudeLevels = {
-      1: { xp: 0, total: 0 },
-      2: { xp: 0, total: 0 },
-      3: { xp: 0, total: 0 },
+      1: { xp: 0, total: aptitudeTotalByLevel[1] },
+      2: { xp: 0, total: aptitudeTotalByLevel[2] },
+      3: { xp: 0, total: aptitudeTotalByLevel[3] },
     };
 
     for (let p of aptiProgress) {
       aptitudeXP += p.bestXP;
-      totalAptitudeXP += p.totalXP;
-
-      aptitudeLevels[p.level] = {
-        xp: p.bestXP,
-        total: p.totalXP,
-      };
+      aptitudeLevels[p.level].xp = p.bestXP;
     }
 
     const aptitudePercent =
@@ -122,7 +129,7 @@ export const getUserStats = async (req, res) => {
         : 0;
 
     // ======================================================
-    // 3. INTERVIEW PROGRESS (LEVEL WISE) - CLEAN & CORRECT
+    // 3. INTERVIEW PROGRESS (LEVEL WISE)
     // ======================================================
 
     let interviewLevels = {
@@ -131,35 +138,29 @@ export const getUserStats = async (req, res) => {
       3: { completedPages: 0, totalPages: 0, xp: 0, totalXP: 0 },
     };
 
-    // 1. Count total QUESTIONS per level
     const interviewQuestions = await InterviewQuestion.find({ isActive: true });
 
     let levelQuestionCount = { 1: 0, 2: 0, 3: 0 };
 
     for (let q of interviewQuestions) {
-      levelQuestionCount[q.level]++; // <-- FIXED (correct field!)
+      levelQuestionCount[q.level]++;
     }
 
-    // 2. Convert questions → pages (10 per page)
     for (let lvl = 1; lvl <= 3; lvl++) {
       interviewLevels[lvl].totalPages = Math.ceil(levelQuestionCount[lvl] / 10);
       interviewLevels[lvl].totalXP = interviewLevels[lvl].totalPages * 10;
     }
 
-    // 3. Fetch user progress
     const userInterview = await InterviewProgress.find({ userId });
 
-    // Each record already = 1 page
     for (let p of userInterview) {
       interviewLevels[p.levelNo].completedPages++;
     }
 
-    // 4. Calculate XP earned per level
     for (let lvl = 1; lvl <= 3; lvl++) {
       interviewLevels[lvl].xp = interviewLevels[lvl].completedPages * 10;
     }
 
-    // 5. Global interview XP
     const interviewXP =
       interviewLevels[1].xp + interviewLevels[2].xp + interviewLevels[3].xp;
 
@@ -174,16 +175,49 @@ export const getUserStats = async (req, res) => {
         : 0;
 
     // ======================================================
-    // 4. GLOBAL XP
+    // 4. CODING PROGRESS (3 QUESTIONS FIXED)
     // ======================================================
-    const currentXP = lessonXP + interviewXP + aptitudeXP;
-    const totalXP = totalLessonXP + totalInterviewXP + totalAptitudeXP;
+
+    const codingXpMap = { 1: 20, 2: 30, 3: 50 };
+    let totalCodingXP = codingXpMap[1] + codingXpMap[2] + codingXpMap[3]; // 100
+
+    let codingLevels = {
+      1: { xp: 0 },
+      2: { xp: 0 },
+      3: { xp: 0 },
+    };
+
+    // Fetch user coding submissions
+    const codingProgress = await CodingProgress.find({ userId });
+
+    // Fill XP earned
+    let codingXP = 0;
+
+    for (let entry of codingProgress) {
+      const qId = Number(entry.questionId);
+
+      if (codingLevels[qId]) {
+        codingLevels[qId].xp = codingXpMap[qId]; // reward full xp
+        codingXP += codingXpMap[qId];
+      }
+    }
+
+    // percent
+    const codingPercent =
+      totalCodingXP > 0 ? Math.round((codingXP / totalCodingXP) * 100) : 0;
+
+    // ======================================================
+    // 5. GLOBAL XP (include coding XP now)
+    // ======================================================
+    const currentXP = lessonXP + interviewXP + aptitudeXP + codingXP;
+    const totalXP =
+      totalLessonXP + totalInterviewXP + totalAptitudeXP + totalCodingXP;
 
     const overallPercent =
       totalXP > 0 ? Math.round((currentXP / totalXP) * 100) : 0;
 
     // ======================================================
-    // 5. STREAK SYSTEM
+    // 6. STREAK SYSTEM
     // ======================================================
     let streakDays = 0;
     let longestStreak = 0;
@@ -219,7 +253,7 @@ export const getUserStats = async (req, res) => {
     }
 
     // ======================================================
-    // 6. RESPONSE
+    // RESPONSE
     // ======================================================
 
     res.json({
@@ -243,6 +277,12 @@ export const getUserStats = async (req, res) => {
       totalInterviewXP,
       interviewPercent,
       interviewLevels,
+
+      // CODING
+      codingXP,
+      totalCodingXP,
+      codingPercent,
+      codingLevels,
 
       // GLOBAL
       currentXP,

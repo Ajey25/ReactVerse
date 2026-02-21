@@ -97,7 +97,7 @@ export default function LessonQuiz({
             transition={{ duration: 0.25 }}
             className="p-6 bg-white/5 rounded-xl border border-[var(--border)] mb-6"
           >
-            <p className="text-xl font-semibold mb-6 text-white">
+            <p className="text-xl font-semibold mb-6 text-[var(--text-bold)]">
               {question.question}
             </p>
 

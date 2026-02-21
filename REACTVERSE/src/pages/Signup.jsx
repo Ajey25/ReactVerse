@@ -6,6 +6,7 @@ import Particles from "react-tsparticles";
 import { loadSlim } from "tsparticles-slim";
 import { motion } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
+import toast from "react-hot-toast";
 const particlesInit = async (engine) => {
   await loadSlim(engine);
 };
@@ -39,7 +40,7 @@ export default function Signup() {
       const user = res.data?.user;
 
       if (!token || !user) {
-        alert("Signup response invalid");
+        toast.error("Signup failed. Please try again.");
         return;
       }
 
@@ -51,14 +52,15 @@ export default function Signup() {
 
       // Navigate to dashboard
       navigate("/dashboard");
+      toast.success("Account created successfully! Welcome aboard!");
     } catch (err) {
       console.log(err);
-      alert("Failed to create account");
+      toast.error("Signup failed. Please try again.");
     }
   };
 
   const googleLogin = () => {
-    window.location.href = "http://localhost:5000/auth/google";
+    window.location.href = `${import.meta.env.VITE_BASE_URL}/auth/google`;
   };
 
   return (

@@ -1,6 +1,7 @@
 // controllers/aptiController.js
 import AptitudeQuestion from "../models/AptitudeQuestion.js";
 import UserAptiProgress from "../models/UserAptiProgress.js";
+import { calculateTotalXP } from "./calculateTotalXP.js";
 
 export const submitAptiTest = async (req, res) => {
   try {
@@ -88,6 +89,9 @@ export const submitAptiTest = async (req, res) => {
 
       await progress.save();
     }
+
+    // 🔥 SYNC XP IMMEDIATELY - Updates both xp and totalXP
+    await calculateTotalXP(userId);
 
     res.status(200).json({
       success: true,

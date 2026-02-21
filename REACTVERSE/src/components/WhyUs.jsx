@@ -1,6 +1,6 @@
 export function WhyUs() {
   return (
-    <section className="py-20 bg-black text-white text-center">
+    <section className="py-4 bg-black text-white text-center">
       <h2 className="text-4xl font-bold mb-10">Why Learn With Reactverse?</h2>
       <div className="grid md:grid-cols-3 gap-10 px-10">
         <div className="p-6 bg-white/5 rounded-xl border border-white/10">

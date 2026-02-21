@@ -1,138 +1,109 @@
 // src/components/Dashboard.jsx
 import React from "react";
 import { motion } from "framer-motion";
+import { getBadge } from "../components/layout/BadgeLevels";
 import {
   FiRefreshCw,
   FiBook,
-  FiZap,
+  FiCode,
   FiUsers,
   FiTrendingUp,
   FiAward,
   FiTarget,
-  FiBarChart2,
-  FiClock,
 } from "react-icons/fi";
 import { useProgress } from "../context/ProgressContext";
+import Commet from "react-loading-indicators/Commet";
 
-const progressMessages = [
-  {
-    min: 0,
-    max: 9,
-    title: "🚀 Fresh Start!",
-    text: "Every legend begins at zero. Let's roll.",
-  },
-  {
-    min: 10,
-    max: 19,
-    title: "🔥 Warming Up!",
-    text: "You're moving. Even 1% is better than 0%.",
-  },
-  {
-    min: 20,
-    max: 29,
-    title: "✨ Nice Momentum!",
-    text: "You're getting the hang of it.",
-  },
-  {
-    min: 30,
-    max: 39,
-    title: "💡 Lights On!",
-    text: "You're learning things most people never start.",
-  },
-  {
-    min: 40,
-    max: 49,
-    title: "⚡ Halfway Approaching!",
-    text: "You're doing solid work.",
-  },
-  {
-    min: 50,
-    max: 59,
-    title: "💪 Halfway Done!",
-    text: "50% isn't luck — it's effort. Respect.",
-  },
-  {
-    min: 60,
-    max: 69,
-    title: "🚀 Power Level Rising!",
-    text: "You've crossed the tough part.",
-  },
-  {
-    min: 70,
-    max: 79,
-    title: "🔥 Crushing It!",
-    text: "You're in the elite zone.",
-  },
-  {
-    min: 80,
-    max: 89,
-    title: "🎉 Almost There!",
-    text: "You're doing amazing! Just a bit more.",
-  },
-  {
-    min: 90,
-    max: 99,
-    title: "🏆 Final Stretch!",
-    text: "One last push and you're basically a React master.",
-  },
-  {
-    min: 100,
-    max: 100,
-    title: "👑 Completed!",
-    text: "You did it. Full respect — finish line crossed.",
-  },
-];
+const StatCard = ({ title, value, total, icon, color, percent, unit = "" }) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    className="group p-5 rounded-2xl bg-[var(--card-bg)] backdrop-blur-xl 
+               border border-[var(--card-border)] shadow-[var(--shadow-soft)] 
+               transition-all"
+  >
+    <div className="flex items-start justify-between mb-4">
+      <div
+        className={`p-3 rounded-xl bg-gradient-to-br ${colors[color].gradient} shadow-lg 
+                    group-hover:scale-110 transition-transform`}
+      >
+        {icon}
+      </div>
+      <div className="text-right">
+        <div className="text-sm font-medium text-[var(--text)]/70">{title}</div>
+        <div className="text-xs text-[var(--text)]/40 mt-1">Progress</div>
+      </div>
+    </div>
 
-const StatCard = React.memo(
-  ({ title, value, total, icon, color = "blue", unit = "" }) => (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      className="p-4 rounded-xl bg-[var(--glass)] border border-[var(--border)]"
-    >
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-sm text-[var(--text)]/60">{title}</span>
-        <div
-          className={`p-2 rounded-lg bg-gradient-to-br ${getGradient(
-            color
-          )} text-white`}
-        >
-          {icon}
+    <div className="space-y-3">
+      <div className="flex items-end gap-2">
+        <div className="text-2xl md:text-3xl font-bold text-[var(--text-bold)]">
+          {value}
+          <span className="text-sm font-normal text-[var(--text)]/50 ml-1">
+            {unit}
+          </span>
+        </div>
+        <div className="text-xs text-[var(--text)]/50 mb-1">/ {total}</div>
+        <div className={`ml-auto text-lg font-bold ${colors[color].text}`}>
+          {percent}%
         </div>
       </div>
-      <div className="text-2xl font-bold">
-        {value}
-        {unit}
-      </div>
-      <div className="text-sm text-[var(--text)]/50">of {total} total</div>
-      <div className="mt-2 h-1.5 bg-white/5 rounded-full overflow-hidden">
-        <div
-          className={`h-full bg-gradient-to-r ${getGradient(color)}`}
-          style={{ width: `${Math.round((value / (total || 1)) * 100)}%` }}
+
+      <div className="h-2 bg-[var(--glass)] rounded-full overflow-hidden">
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${percent}%` }}
+          transition={{ duration: 1, ease: "easeOut" }}
+          className={`h-full bg-gradient-to-r ${colors[color].gradient}`}
         />
       </div>
-    </motion.div>
-  )
+    </div>
+  </motion.div>
 );
 
-const ProgressRing = ({
-  percent,
-  size = 120,
-  stroke = 8,
-  color = "purple",
-}) => {
+const LevelPill = ({ level, xp, total, color }) => {
+  const fixedTotals = { 1: 20, 2: 30, 3: 50 };
+  const effectiveTotal = total || fixedTotals[level] || 0;
+  const percent = effectiveTotal ? Math.round((xp / effectiveTotal) * 100) : 0;
+
+  return (
+    <div
+      className="flex items-center gap-3 p-3 rounded-xl bg-[var(--card-bg)] 
+                    border border-[var(--card-border)] shadow-[var(--shadow-soft)]"
+    >
+      <div
+        className={`w-10 h-10 rounded-full flex items-center justify-center 
+                    bg-gradient-to-br ${colors[color].gradient} font-bold text-white`}
+      >
+        {level}
+      </div>
+      <div className="flex-1">
+        <div className="text-sm font-medium text-[var(--text)]">
+          Level {level}
+        </div>
+        <div className="text-xs text-[var(--text)]/60">
+          {xp} / {effectiveTotal} XP
+        </div>
+      </div>
+      <div className="text-sm font-bold text-[var(--text)]">{percent}%</div>
+    </div>
+  );
+};
+
+const ProgressDonut = ({ percent, size = 160, label, xp, totalXP }) => {
+  const stroke = 12;
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (percent / 100) * circumference;
 
   return (
-    <div className="relative" style={{ width: size, height: size }}>
+    <div className="relative">
       <svg width={size} height={size} className="transform -rotate-90">
         <circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="var(--border)"
+          stroke="var(--card-border)"
           strokeWidth={stroke}
           fill="none"
         />
@@ -140,287 +111,384 @@ const ProgressRing = ({
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke={getColor(color)}
+          stroke="url(#donut-gradient)"
           strokeWidth={stroke}
           fill="none"
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={offset}
-          className="transition-all duration-700"
+          className="transition-all duration-1500 ease-out"
         />
+        <defs>
+          <linearGradient id="donut-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#8b5cf6" />
+            <stop offset="100%" stopColor="#ec4899" />
+          </linearGradient>
+        </defs>
       </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-2xl font-bold">{Math.round(percent)}%</span>
+
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <div className="text-3xl font-bold text-[var(--text-bold)]">
+          {percent}%
+        </div>
+        <div className="text-xs text-[var(--text)]/60 mt-1">{label}</div>
+        <div className="text-sm text-[var(--text)]/70 mt-2">
+          {xp} / {totalXP} XP
+        </div>
       </div>
     </div>
   );
 };
 
-const getGradient = (color) => {
-  const gradients = {
-    blue: "from-blue-500 to-cyan-400",
-    green: "from-green-500 to-emerald-400",
-    orange: "from-orange-500 to-amber-400",
-    purple: "from-purple-500 to-pink-400",
-    red: "from-red-500 to-orange-400",
-  };
-  return gradients[color] || gradients.blue;
+const colors = {
+  blue: { gradient: "from-blue-500 to-cyan-500", text: "text-blue-500" },
+  green: { gradient: "from-emerald-500 to-teal-500", text: "text-emerald-500" },
+  orange: { gradient: "from-amber-500 to-orange-500", text: "text-amber-500" },
+  red: { gradient: "from-rose-500 to-pink-500", text: "text-rose-500" },
 };
 
-const getColor = (color) => {
-  const colors = {
-    blue: "#3b82f6",
-    green: "#10b981",
-    orange: "#f59e0b",
-    purple: "#8b5cf6",
-    red: "#ef4444",
-  };
-  return colors[color] || colors.blue;
-};
+const StatsSection = ({ title, stats, color, icon }) => (
+  <div className="space-y-3">
+    <div className="flex items-center gap-2 mb-2">
+      <div
+        className={`p-2 rounded-lg bg-gradient-to-br ${colors[color].gradient}`}
+      >
+        {icon}
+      </div>
+      <h4 className="font-semibold text-[var(--text-bold)]">{title}</h4>
+    </div>
+
+    <div className="space-y-2">
+      {Object.entries(stats).map(([level, data]) => (
+        <LevelPill
+          key={level}
+          level={level}
+          xp={data.xp || 0}
+          total={data.total || data.totalXP || 0}
+          color={color}
+        />
+      ))}
+    </div>
+  </div>
+);
 
 export default function Dashboard() {
   const { stats, loading, refreshProgress } = useProgress();
 
-  if (loading) {
+  if (loading)
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500" />
+      <div className="w-full h-screen flex items-center justify-center bg-[var(--bg)]">
+        <Commet color="blue" size="medium" />
       </div>
     );
-  }
 
-  if (!stats) {
+  if (!stats)
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <FiBook className="text-5xl mx-auto mb-3 text-gray-400" />
-          <h2 className="text-xl font-bold mb-1">No Progress Data</h2>
-          <p className="text-gray-500">Start learning to see your progress</p>
+      <div className="min-h-screen flex items-center justify-center bg-[var(--bg)]">
+        <div
+          className="text-center p-8 rounded-2xl bg-[var(--card-bg)] 
+                        border border-[var(--card-border)] shadow-[var(--shadow-medium)]"
+        >
+          <FiBook className="text-5xl mx-auto mb-4 text-[var(--text)]/60" />
+          <h2 className="text-xl font-bold text-[var(--text-bold)] mb-2">
+            Start Learning
+          </h2>
+          <p className="text-[var(--text)]/60">
+            Begin your journey to see progress
+          </p>
         </div>
       </div>
     );
-  }
 
   const {
-    completedLessons = 0,
-    totalLessons = 0,
-    currentXP = 0,
-    totalXP = 0,
-    overallPercent = 0,
-    lessonPercent = 0,
-    aptitudePercent = 0,
-    interviewPercent = 0,
-    streakDays = 0,
-    longestStreak = 0,
-    aptitudeXP = 0,
-    totalAptitudeXP = 0,
-    interviewXP = 0,
-    totalInterviewXP = 0,
+    currentXP,
+    totalXP,
+    overallPercent,
+    lessonPercent,
+    aptitudePercent,
+    interviewPercent,
+    codingPercent,
+    completedLessons,
+    totalLessons,
+    aptitudeXP,
+    totalAptitudeXP,
+    interviewXP,
+    totalInterviewXP,
+    codingXP,
+    totalCodingXP,
+    streakDays,
+    longestStreak,
+    aptitudeLevels,
+    interviewLevels,
+    codingLevels,
   } = stats;
-
-  const xpProgress = totalXP ? Math.round((currentXP / totalXP) * 100) : 0;
-  const message =
-    progressMessages.find(
-      (m) => overallPercent >= m.min && overallPercent <= m.max
-    ) || progressMessages[0];
+  const badge = getBadge(currentXP, totalXP);
 
   return (
-    <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-cyan-400">
-            Learning Dashboard
-          </h1>
-          <p className="text-sm text-[var(--text)]/60">
-            Track your progress across all modules
-          </p>
-        </div>
-        <button
-          onClick={refreshProgress}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--glass)] border border-[var(--border)] hover:bg-[var(--border)] transition-colors"
+    <div className="min-h-screen p-4" style={{ background: "var(--bg)" }}>
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div
+          className="flex flex-col sm:flex-row items-start sm:items-center 
+                        justify-between gap-4"
         >
-          <FiRefreshCw className={loading ? "animate-spin" : ""} />
-          <span className="font-medium">Refresh</span>
-        </button>
-      </div>
+          <div>
+            <h1
+              className="text-3xl md:text-4xl font-bold 
+                           bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 
+                           bg-clip-text text-transparent"
+            >
+              Learning Dashboard
+            </h1>
+            <p className="text-[var(--text)]/60 mt-2">
+              Track your mastery across all modules
+            </p>
+          </div>
 
-      {/* Main Progress Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="grid grid-cols-1 lg:grid-cols-3 gap-6"
-      >
-        {/* Overall Progress Ring */}
-        <div className="lg:col-span-1 bg-[var(--glass)] border border-[var(--border)] rounded-2xl p-6 flex flex-col items-center">
-          <ProgressRing percent={overallPercent} color="purple" />
-          <h3 className="mt-4 text-lg font-semibold">Overall Progress</h3>
-          <p className="text-sm text-center text-[var(--text)]/60 mt-2">
-            {message.text}
-          </p>
-          <div className="mt-4 grid grid-cols-3 gap-3 w-full">
-            <div className="text-center">
-              <div className="text-sm text-[var(--text)]/60">Lessons</div>
-              <div className="font-bold text-blue-500">{lessonPercent}%</div>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={refreshProgress}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl 
+                       transition-all font-medium
+                       bg-[var(--glass)]
+                       border border-[var(--border)]
+                       backdrop-blur-md
+                       hover:bg-[var(--glass)]
+                       hover:border-purple-500/40
+                       shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-medium)]
+                       text-[var(--text)]"
+          >
+            <FiRefreshCw className={loading ? "animate-spin" : ""} />
+            <span>Refresh Stats</span>
+          </motion.button>
+        </div>
+
+        {/* Main Stats Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Progress Donut */}
+          <div
+            className="lg:col-span-1 p-8 rounded-3xl relative overflow-hidden backdrop-blur-xl
+             flex flex-col items-center justify-center shadow-xl transition-all"
+            style={{
+              background: `linear-gradient(135deg, ${badge.color}22, ${badge.color}08)`,
+              border: `1px solid ${badge.color}44`,
+            }}
+          >
+            {/* SOFT GLOW - Minimal */}
+            <div
+              className="absolute -left-16 top-1/2 -translate-y-1/2 w-56 h-56 rounded-full opacity-[0.10] blur-3xl"
+              style={{
+                background: `radial-gradient(circle, ${badge.color}55 0%, transparent 70%)`,
+              }}
+            />
+
+            {/* TIER TAG WITH ICON */}
+            <div className="absolute -top-0 flex items-center gap-2">
+              <div
+                className="px-4 py-1.5 rounded-full text-xs font-bold shadow-lg backdrop-blur-md flex items-center gap-2"
+                style={{
+                  background: `${badge.color}CC`,
+                  color: "white",
+                }}
+              >
+                <span className="text-base">{badge.icon}</span>
+                <span>{badge.label} Tier</span>
+              </div>
             </div>
-            <div className="text-center">
-              <div className="text-sm text-[var(--text)]/60">Aptitude</div>
-              <div className="font-bold text-green-500">{aptitudePercent}%</div>
-            </div>
-            <div className="text-center">
-              <div className="text-sm text-[var(--text)]/60">Interview</div>
-              <div className="font-bold text-orange-500">
-                {interviewPercent}%
+
+            {/* Donut */}
+            <ProgressDonut
+              percent={overallPercent}
+              label="Overall Progress"
+              xp={currentXP}
+              totalXP={totalXP}
+            />
+
+            {/* Status Box */}
+            <div
+              className="mt-8 p-4 rounded-xl w-full text-center backdrop-blur-md border shadow-inner"
+              style={{
+                background: `${badge.color}15`,
+                borderColor: `${badge.color}55`,
+              }}
+            >
+              <div
+                className="text-sm font-medium"
+                style={{ color: badge.color }}
+              >
+                {overallPercent < 30
+                  ? "🚀 Just Getting Started"
+                  : overallPercent < 60
+                  ? "⚡ Building Momentum"
+                  : overallPercent < 90
+                  ? "💪 Crushing It"
+                  : "🏆 Elite Performer"}
+              </div>
+              <div className="text-xs opacity-70 text-[var(--text)]">
+                Keep pushing forward!
               </div>
             </div>
           </div>
+
+          {/* Quick Stats */}
+          <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <StatCard
+              title="Lessons"
+              value={completedLessons}
+              total={totalLessons}
+              percent={lessonPercent}
+              icon={<FiBook size={22} className="text-white" />}
+              color="blue"
+            />
+            <StatCard
+              title="Coding"
+              value={codingXP}
+              total={totalCodingXP}
+              percent={codingPercent}
+              icon={<FiCode size={22} className="text-white" />}
+              color="green"
+              unit="XP"
+            />
+            <StatCard
+              title="Aptitude"
+              value={aptitudeXP}
+              total={totalAptitudeXP}
+              percent={aptitudePercent}
+              icon={<FiUsers size={22} className="text-white" />}
+              color="orange"
+              unit="XP"
+            />
+            <StatCard
+              title="Interview"
+              value={interviewXP}
+              total={totalInterviewXP}
+              percent={interviewPercent}
+              icon={<FiTrendingUp size={22} className="text-white" />}
+              color="red"
+              unit="XP"
+            />
+          </div>
         </div>
 
-        {/* Stats Grid */}
-        <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <StatCard
-            title="Lessons Completed"
-            value={completedLessons}
-            total={totalLessons}
-            icon={<FiBook />}
-            color="blue"
-          />
-          <StatCard
-            title="Total XP"
-            value={currentXP}
-            total={totalXP}
-            icon={<FiZap />}
-            color="green"
-            unit=" XP"
-          />
-          <StatCard
-            title="Aptitude XP"
-            value={aptitudeXP}
-            total={totalAptitudeXP}
-            icon={<FiUsers />}
-            color="orange"
-            unit=" XP"
-          />
-          <StatCard
-            title="Interview XP"
-            value={interviewXP}
-            total={totalInterviewXP}
-            icon={<FiTrendingUp />}
-            color="red"
-            unit=" XP"
-          />
-        </div>
-      </motion.div>
+        {/* Level Progress */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div
+            className="lg:col-span-2 p-6 rounded-2xl
+                       bg-[var(--card-bg)]
+                       border border-[var(--border)]
+                       shadow-[var(--shadow-medium)]
+                       backdrop-blur-xl"
+          >
+            <div className="flex items-center gap-2 mb-6">
+              <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500">
+                <FiTarget size={20} className="text-white" />
+              </div>
+              <h3 className="text-lg font-semibold text-[var(--text-bold)]">
+                Level Progress
+              </h3>
+            </div>
 
-      {/* Bottom Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="grid grid-cols-1 md:grid-cols-2 gap-6"
-      >
-        {/* Streak & Motivation */}
-        <div className="bg-[var(--glass)] border border-[var(--border)] rounded-2xl p-5">
-          <h3 className="text-lg font-semibold mb-4">Streak & Motivation</h3>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-orange-500/10 to-rose-500/10">
-              <div>
-                <div className="text-sm text-[var(--text)]/60">
-                  Current Streak
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {aptitudeLevels && (
+                <StatsSection
+                  title="Aptitude"
+                  stats={aptitudeLevels}
+                  color="orange"
+                  icon={<FiUsers size={18} />}
+                />
+              )}
+              {interviewLevels && (
+                <StatsSection
+                  title="Interview"
+                  stats={interviewLevels}
+                  color="red"
+                  icon={<FiTrendingUp size={18} />}
+                />
+              )}
+              {codingLevels && (
+                <StatsSection
+                  title="Coding"
+                  stats={codingLevels}
+                  color="green"
+                  icon={<FiCode size={18} />}
+                />
+              )}
+            </div>
+          </div>
+
+          {/* Streak */}
+          <div
+            className="p-6 rounded-2xl
+                       bg-[var(--card-bg)]
+                       border border-[var(--border)]
+                       shadow-[var(--shadow-medium)]
+                       backdrop-blur-xl"
+          >
+            <div className="flex items-center gap-2 mb-6">
+              <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500">
+                <FiAward size={20} className="text-white" />
+              </div>
+              <h3 className="text-lg font-semibold text-[var(--text-bold)]">
+                Streak & Consistency
+              </h3>
+            </div>
+
+            <div className="space-y-6">
+              <div className="text-center">
+                <div
+                  className="text-4xl font-bold 
+                             bg-gradient-to-r from-amber-500 to-orange-500 
+                             bg-clip-text text-transparent"
+                >
+                  {streakDays}
                 </div>
-                <div className="text-2xl font-bold">{streakDays} days</div>
+                <div className="text-sm text-[var(--text)]/60 mt-1">
+                  Current Streak Days
+                </div>
               </div>
-              <FiAward className="text-3xl text-orange-500" />
-            </div>
-            <div className="text-sm">
-              <div className="flex justify-between mb-1">
-                <span>Longest Streak</span>
-                <span className="font-semibold">{longestStreak} days</span>
-              </div>
-              <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-orange-500 to-rose-500"
-                  style={{
-                    width: `${Math.min(
-                      (streakDays / (longestStreak || 1)) * 100,
-                      100
-                    )}%`,
-                  }}
-                />
-              </div>
-            </div>
-            <div className="p-3 rounded-lg bg-gradient-to-br from-indigo-600/10 to-cyan-400/10">
-              <div className="font-semibold text-sm mb-1">{message.title}</div>
-              <div className="text-xs text-[var(--text)]/60">
-                {message.text}
-              </div>
-            </div>
-          </div>
-        </div>
 
-        {/* XP Breakdown */}
-        <div className="bg-[var(--glass)] border border-[var(--border)] rounded-2xl p-5">
-          <h3 className="text-lg font-semibold mb-4">XP Breakdown</h3>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-[var(--text)]/60">Lesson XP</span>
-                <span className="font-semibold">
-                  {stats.lessonXP || 0} / {stats.totalLessonXP || 0}
-                </span>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-[var(--text)]/60">Longest Streak</span>
+                  <span className="font-semibold text-[var(--text-bold)]">
+                    {longestStreak} days
+                  </span>
+                </div>
+
+                <div className="h-2 bg-[var(--glass)] rounded-full overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{
+                      width: `${(streakDays / (longestStreak || 1)) * 100}%`,
+                    }}
+                    transition={{ duration: 1.5, ease: "easeOut" }}
+                    className="h-full bg-gradient-to-r from-amber-500 to-orange-500"
+                  />
+                </div>
               </div>
-              <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-blue-500 to-cyan-400"
-                  style={{ width: `${lessonPercent}%` }}
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-[var(--text)]/60">Aptitude XP</span>
-                <span className="font-semibold">
-                  {aptitudeXP} / {totalAptitudeXP}
-                </span>
-              </div>
-              <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-green-500 to-emerald-400"
-                  style={{ width: `${aptitudePercent}%` }}
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-[var(--text)]/60">Interview XP</span>
-                <span className="font-semibold">
-                  {interviewXP} / {totalInterviewXP}
-                </span>
-              </div>
-              <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-orange-500 to-amber-400"
-                  style={{ width: `${interviewPercent}%` }}
-                />
-              </div>
-            </div>
-            <div className="pt-4 border-t border-[var(--border)]">
-              <div className="flex justify-between text-sm">
-                <span className="text-[var(--text)]/60">
-                  Overall XP Progress
-                </span>
-                <span className="font-semibold">{xpProgress}%</span>
-              </div>
-              <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-purple-500 to-pink-400"
-                  style={{ width: `${xpProgress}%` }}
-                />
+
+              <div
+                className="p-4 rounded-xl 
+                           bg-[var(--glass)]
+                           border border-[var(--border)]
+                           shadow-[var(--shadow-soft)]"
+              >
+                <div className="text-sm font-semibold text-[var(--text)] mb-1">
+                  {streakDays > 0
+                    ? "🔥 Keep the streak alive!"
+                    : "Start your streak today!"}
+                </div>
+                <div className="text-xs text-[var(--text)]/70">
+                  {streakDays > 0
+                    ? `${streakDays} day${streakDays > 1 ? "s" : ""} strong!`
+                    : "Complete a lesson to start your streak!"}
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

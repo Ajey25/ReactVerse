@@ -6,15 +6,31 @@ export default function LessonHeading({
 }) {
   return (
     <div className="mb-8">
-      <div className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full inline-block text-sm font-medium mb-3">
+      {/* Lesson Badge */}
+      <div
+        className="
+          px-3 py-1 rounded-full inline-block text-sm font-medium mb-3
+          bg-[var(--tag-bg)] 
+          text-[var(--tag-text)] 
+          border border-[var(--tag-border)]
+        "
+      >
         Lesson {moduleOrder}.{lessonNumber}
       </div>
 
-      <h1 className="text-4xl font-bold text-transparent bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text mb-2">
+      {/* Title — Gradient but readable in both themes */}
+      <h1
+        className="
+          text-4xl font-bold mb-2 
+          bg-gradient-to-r from-blue-500 to-purple-600 
+          bg-clip-text text-transparent
+        "
+      >
         {title}
       </h1>
 
-      {subtopic && <p className="text-gray-400 text-lg">{subtopic}</p>}
+      {/* Subtopic — Theme-aware text */}
+      {subtopic && <p className="text-[var(--text)]/70 text-lg">{subtopic}</p>}
     </div>
   );
 }

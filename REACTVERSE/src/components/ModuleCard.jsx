@@ -57,18 +57,7 @@ export function ModuleCard({ title, lessons, quizzes }) {
       <div className="flex items-center justify-between">
         <div>
           <div className="font-semibold text-lg text-white">{title}</div>
-          <div className="text-gray-300 text-sm mt-1">
-            {lessons} lessons • {quizzes} quizzes
-          </div>
         </div>
-
-        <motion.div
-          className="bg-gradient-to-br from-purple-600 to-pink-500 rounded-full px-3 py-2 text-white text-sm cursor-pointer"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          Start
-        </motion.div>
       </div>
 
       <div className="mt-4 text-sm text-gray-300">

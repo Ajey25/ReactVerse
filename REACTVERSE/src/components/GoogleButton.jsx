@@ -1,9 +1,9 @@
 // src/components/GoogleButton.jsx
-export default function GoogleButton() {
-  const SERVER_URL = "http://localhost:5000"; // change later
 
+export default function GoogleButton() {
+  const SERVER_URL = import.meta.env.VITE_BASE_URL;
   const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:5000/auth/google";
+    window.location.href = `${SERVER_URL}/auth/google`;
   };
 
   return (

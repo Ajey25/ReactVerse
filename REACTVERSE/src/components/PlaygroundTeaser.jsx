@@ -48,7 +48,7 @@ export function PlaygroundTeaser() {
   };
 
   return (
-    <section id="playground" className="relative z-10 py-16">
+    <section id="playground" className="relative z-10 py-6">
       <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-14 items-center">
         {/* LEFT TEXT */}
         <motion.div
@@ -64,17 +64,21 @@ export function PlaygroundTeaser() {
             />
           </motion.div>
 
-          <motion.p className="mt-4 text-gray-300" variants={fadeUp}>
-            Link code examples directly inside lessons. Reset to default, fork
-            the sandbox, or test quiz answers instantly.
+          <motion.p
+            className="mt-4 text-gray-300 text-center"
+            variants={fadeUp}
+          >
+            Write code inside a live sandbox editor, run real test cases, and
+            submit your solution to earn XP. Stuck? View the reference answer
+            and learn the correct approach instantly.
           </motion.p>
 
-          <motion.div className="mt-6 flex gap-4" variants={fadeUp}>
+          {/* <motion.div className="mt-6 flex gap-4" variants={fadeUp}>
             <CTAButton>Try the Sandbox</CTAButton>
             <button className="px-4 py-2 rounded-full border border-white/20 text-white">
               See examples
             </button>
-          </motion.div>
+          </motion.div> */}
         </motion.div>
 
         {/* RIGHT - SANDBOX CARD */}

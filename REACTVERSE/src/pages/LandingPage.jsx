@@ -14,17 +14,49 @@ import { Hero } from "../components/Hero.jsx";
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white overflow-x-hidden">
       <Navbar />
-      <main className="pt-20">
+
+      <main className="pt-16 sm:pt-25">
+        {/* HERO */}
         <Hero />
-        <ModulesPreview />
-        <PlaygroundTeaser />
-        <Projects />
-        <InterviewPrep />
-        <ProfilePreview />
-        <Testimonials />
-        <FAQ />
+
+        {/* MODULES */}
+        <section className="mt-10 sm:mt-10">
+          <ModulesPreview />
+        </section>
+
+        {/* PLAYGROUND */}
+        <section className="mt-14 sm:mt-20">
+          <PlaygroundTeaser />
+        </section>
+
+        {/* PROJECTS */}
+        <section className="mt-14 sm:mt-20">
+          <Projects />
+        </section>
+
+        {/* INTERVIEW */}
+        <section className="mt-14 sm:mt-20">
+          <InterviewPrep />
+        </section>
+
+        {/* PROFILE */}
+        <section className="mt-14 sm:mt-20">
+          <ProfilePreview />
+        </section>
+
+        {/* TESTIMONIALS */}
+        <section className="mt-14 sm:mt-20">
+          <Testimonials />
+        </section>
+
+        {/* FAQ */}
+        <section className="mt-14 sm:mt-20">
+          <FAQ />
+        </section>
+
+        {/* FOOTER */}
         <Footer />
       </main>
     </div>

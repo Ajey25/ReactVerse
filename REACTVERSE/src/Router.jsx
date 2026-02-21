@@ -11,6 +11,12 @@ import Learn from "./pages/Learn";
 import Interview from "./pages/Interview";
 import CardLevels from "./components/interview/CardLevels";
 import LevelPage from "./components/interview/LevelPage";
+import Components from "./pages/Components";
+import Projects from "./pages/Projects";
+import Profile from "./components/layout/Profile";
+import EditProfile from "./components/layout/EditProfile";
+import Leaderboard from "./components/layout/Leaderboard";
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -63,6 +69,26 @@ const router = createBrowserRouter([
           {
             path: "/interview/:cardId/level/:levelId",
             element: <LevelPage />,
+          },
+          {
+            path: "/projects",
+            element: <Projects />,
+          },
+          {
+            path: "/components",
+            element: <Components />,
+          },
+          {
+            path: "/profile",
+            element: <Profile />,
+          },
+          {
+            path: "/profile/edit",
+            element: <EditProfile />,
+          },
+          {
+            path: "/profile/leaderboard",
+            element: <Leaderboard />,
           },
         ],
       },

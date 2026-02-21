@@ -3,6 +3,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Particles from "react-tsparticles";
 import { loadSlim } from "tsparticles-slim";
+import toast from "react-hot-toast";
 
 const particlesInit = async (engine) => {
   await loadSlim(engine);
@@ -17,19 +18,19 @@ export default function SetPasswordModal({ isOpen, onClose, userEmail }) {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      alert("Passwords don't match");
+      toast.error("Passwords don't match");
       return;
     }
 
     if (password.length < 6) {
-      alert("Password must be at least 6 characters");
+      toast.error("Password must be at least 6 characters");
       return;
     }
 
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5000/auth/set-password", {
+      const response = await fetch("/auth/set-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: userEmail, password }),
@@ -38,14 +39,13 @@ export default function SetPasswordModal({ isOpen, onClose, userEmail }) {
       const data = await response.json();
 
       if (response.ok) {
-        alert("Password set successfully!");
+        toast.success("Password set successfully!");
         onClose();
       } else {
-        alert(data.message || "Failed to set password");
+        toast.error(data.message || "Failed to set password");
       }
     } catch (err) {
-      console.error("Set password error:", err);
-      alert("Failed to set password");
+      toast.error("An error occurred. Please try again.");
     } finally {
       setLoading(false);
     }

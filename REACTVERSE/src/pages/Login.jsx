@@ -8,7 +8,8 @@ import Particles from "react-tsparticles";
 import { loadSlim } from "tsparticles-slim";
 import { FcGoogle } from "react-icons/fc";
 import { useAuth } from "../context/AuthContext"; // Add this import
-
+import toast from "react-hot-toast";
+import { useProgress } from "../context/ProgressContext";
 const particlesInit = async (engine) => {
   await loadSlim(engine);
 };
@@ -17,7 +18,7 @@ export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
   const navigate = useNavigate();
   const { login } = useAuth(); // Get login function from context
-
+  const { refreshProgress } = useProgress();
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
   const handleSubmit = async (e) => {
@@ -36,22 +37,24 @@ export default function Login() {
 
       // Go to dashboard
       navigate("/dashboard", { replace: true });
+      toast.success("Welcome Back!");
+      refreshProgress();
     } catch (err) {
       console.log("Login error:", err);
 
       // If backend tells Google-only user to login via Google
       if (err.response?.data?.requiresGoogle) {
-        alert(
+        toast.error(
           "This account was created with Google. Please login with Google."
         );
         return;
       }
 
-      alert("Invalid login credentials");
+      toast.error("Login failed. Please check your credentials.");
     }
   };
   const googleLogin = () => {
-    window.location.href = "http://localhost:5000/auth/google";
+    window.location.href = `${import.meta.env.VITE_BASE_URL}/auth/google`;
   };
 
   return (

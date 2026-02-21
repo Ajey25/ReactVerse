@@ -1,4 +1,3 @@
-// --- SAME IMPORTS ---
 import { useParams, Link } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -41,162 +40,186 @@ export default function CardLevels() {
     },
   ];
 
-  // 🟢 FUNCTION: Map progress data based on the category
+  // PROGRESS LOGIC
   function getLevelProgress(levelId) {
-    if (!stats) return { completed: 0, total: 0 };
+    if (!stats) return { completed: 0, total: 0, xp: 0 };
 
-    // INTERVIEW
     if (cardId === "interview") {
-      const levelData = stats.interviewLevels?.[String(levelId)];
-
-      if (!levelData) return { completed: 0, total: 0 };
-
-      return {
-        completed: levelData.completedPages,
-        total: levelData.totalPages,
-      };
+      const d = stats.interviewLevels?.[String(levelId)];
+      return d
+        ? {
+            completed: d.completedPages,
+            total: d.totalPages,
+            xp: d.completedPages,
+          }
+        : {};
     }
 
-    // APTITUDE
     if (cardId === "aptitude") {
-      const levelData = stats.aptitudeLevels?.[String(levelId)];
-
-      if (!levelData) return { completed: 0, total: 0 };
-
-      return {
-        completed: levelData.xp,
-        total: levelData.total,
-      };
+      const d = stats.aptitudeLevels?.[String(levelId)];
+      return d ? { completed: d.xp, total: d.total, xp: d.xp } : {};
     }
 
-    // LESSONS
+    if (cardId === "coding") {
+      const d = stats.codingLevels?.[String(levelId)];
+      const codingTotals = { 1: 20, 2: 30, 3: 50 };
+      return d
+        ? { completed: d.xp, total: codingTotals[levelId], xp: d.xp }
+        : {};
+    }
+
     if (cardId === "lessons") {
       return {
         completed: stats.completedLessons,
         total: stats.totalLessons,
+        xp: stats.completedLessons,
       };
     }
 
-    return { completed: 0, total: 0 };
+    return { completed: 0, total: 0, xp: 0 };
   }
 
   return (
-    <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white p-8">
+    <div
+      className="p-6"
+      style={{ background: "var(--bg)", color: "var(--text)" }}
+    >
       <div className="max-w-6xl mx-auto">
-        {/* Header */}
+        {/* HEADER */}
         <motion.div
-          className="mb-4"
+          className="mb-6"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
         >
           <Link
             to="/interview"
-            className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-2 group"
+            className="flex items-center gap-2 text-sm group"
+            style={{ color: "var(--text)" }}
           >
             <FiArrowLeft className="group-hover:-translate-x-1 transition-transform" />
-            <span>Back to Interview Prep</span>
+            Back
           </Link>
 
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent capitalize">
+          <h1 className="text-4xl font-bold mt-3 bg-gradient-to-r from-blue-500 via-purple-400 to-pink-400 bg-clip-text text-transparent capitalize">
             {cardId.replace("-", " ")}
           </h1>
-          <p className="text-slate-400 text-lg">
-            Choose your level and start learning
-          </p>
+
+          <p className="text-[var(--text)]/70 text-lg">Choose your level</p>
         </motion.div>
 
-        {/* Levels Grid */}
+        {/* LEVEL CARDS GRID */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {levels.map((level, index) => {
             const progress = getLevelProgress(level.id);
-
-            const percent =
-              progress.total > 0
-                ? Math.round((progress.completed / progress.total) * 100)
-                : 0;
+            const percent = progress.total
+              ? Math.round((progress.completed / progress.total) * 100)
+              : 0;
+            const isCompleted = percent === 100;
 
             return (
               <motion.div
                 key={level.id}
-                initial={{ opacity: 0, x: -100 }}
+                initial={{ opacity: 0, x: -50 }}
                 animate={{ opacity: 1, x: 0 }}
-                transition={{
-                  duration: 0.6,
-                  delay: index * 0.2,
-                  ease: [0.25, 0.4, 0.25, 1],
-                }}
+                transition={{ duration: 0.5, delay: index * 0.15 }}
               >
                 <Link
                   to={`/interview/${cardId}/level/${level.id}`}
-                  className="group relative block"
                   onMouseEnter={() => setHoveredLevel(level.id)}
                   onMouseLeave={() => setHoveredLevel(null)}
+                  className="group block relative"
                 >
                   <div
-                    className={`relative overflow-hidden rounded-2xl bg-slate-900/50 
-                    backdrop-blur-sm border border-slate-800 transition-all duration-300 
-                    h-full group-hover:scale-[1.02] group-hover:border-slate-700`}
+                    className="relative rounded-2xl overflow-hidden backdrop-blur-sm transition-all duration-300 h-full group-hover:scale-[1.02]"
+                    style={{
+                      background: "var(--card-bg)",
+                      border: "1px solid var(--card-border)",
+                    }}
                   >
+                    {/* HOVER GRADIENT GLOW */}
                     <div
-                      className={`absolute inset-0 bg-gradient-to-br ${level.gradient}
-                      opacity-0 group-hover:opacity-10 transition-opacity duration-500`}
+                      className={`absolute inset-0 bg-gradient-to-br ${level.gradient} opacity-0 group-hover:opacity-10 transition-opacity`}
                     />
 
+                    {/* CONTENT */}
                     <div className="relative p-8">
+                      {/* ICON */}
                       <div
-                        className={`w-14 h-14 rounded-xl bg-gradient-to-br ${level.gradient}
-                        flex items-center justify-center text-2xl mb-6
-                        group-hover:scale-110 transition-transform duration-300`}
+                        className={`w-16 h-16 rounded-xl flex items-center justify-center text-2xl mb-6 text-white bg-gradient-to-br ${level.gradient} group-hover:scale-110 transition-transform`}
                       >
                         {level.icon}
                       </div>
 
-                      <p className="text-sm text-slate-500 mb-1">
+                      {/* LABEL */}
+                      <p className="text-sm text-[var(--text)]/60">
                         {level.label}
                       </p>
-                      <h3 className="text-2xl font-bold mb-2">{level.label}</h3>
-                      <p className="text-slate-400 text-sm leading-relaxed">
+
+                      {/* TITLE */}
+                      <h3 className="text-2xl font-bold mt-1 text-[var(--text-bold)]">
+                        {level.label}
+                      </h3>
+
+                      <p className="text-sm mt-1 text-[var(--text)]/80">
                         {level.desc}
                       </p>
 
-                      {/* Progress Bar */}
-                      <div className="mt-6">
-                        <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+                      {/* XP */}
+                      <p className="mt-3 text-sm font-semibold text-emerald-500">
+                        {cardId === "interview"
+                          ? `Pages Read: ${progress.completed}`
+                          : `XP Earned: ${progress.xp}`}
+                      </p>
+
+                      {/* PROGRESS BAR — Coding has none */}
+                      {cardId !== "coding" && (
+                        <div className="mt-4">
                           <div
-                            className="h-full bg-gradient-to-r from-green-400 to-emerald-500 transition-all"
-                            style={{ width: `${percent}%` }}
-                          />
+                            className="h-2 rounded-full overflow-hidden"
+                            style={{ background: "var(--answer-bg)" }}
+                          >
+                            <div
+                              className={`h-full bg-gradient-to-r ${level.gradient}`}
+                              style={{ width: `${percent}%` }}
+                            />
+                          </div>
+                          <p className="text-xs mt-1 text-[var(--text)]/70">
+                            {progress.completed}/{progress.total} • {percent}%
+                          </p>
                         </div>
+                      )}
 
-                        <p className="text-slate-400 text-xs mt-2">
-                          {cardId === "interview"
-                            ? `${progress.completed}/${progress.total} pages • ${percent}%`
-                            : `${progress.completed}/${progress.total} • ${percent}%`}
+                      {/* CODING STATUS */}
+                      {cardId === "coding" && (
+                        <p className="mt-2 text-sm font-semibold text-[var(--text)]/80">
+                          {progress.xp === 0
+                            ? "Not Attempted"
+                            : progress.xp === progress.total
+                            ? "Completed"
+                            : "In Progress"}
                         </p>
-                      </div>
+                      )}
 
-                      <div className="mt-6 flex items-center gap-2 text-sm font-medium text-slate-300 group-hover:text-white">
-                        <span>Start Level</span>
+                      {/* START / RESTART BUTTON */}
+                      <div
+                        className="mt-6 flex items-center gap-2 text-sm font-medium"
+                        style={{
+                          color: isCompleted ? "#fb7185" : "var(--text-bold)",
+                        }}
+                      >
+                        {isCompleted ? "Restart Level" : "Start Level"}
                         <FiArrowRight className="group-hover:translate-x-1 transition-transform" />
                       </div>
                     </div>
 
-                    <div
-                      className="absolute inset-0 -translate-x-full 
-                      group-hover:translate-x-full transition-transform duration-1000 
-                      bg-gradient-to-r from-transparent via-white/10 to-transparent"
-                    />
+                    {/* SHIMMER */}
+                    <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
 
+                    {/* Animated border when hovering */}
                     {hoveredLevel === level.id && (
                       <motion.div
-                        className="absolute inset-0 rounded-2xl border-2 border-transparent pointer-events-none"
-                        layoutId="borderAnim"
-                        transition={{
-                          type: "spring",
-                          bounce: 0.2,
-                          duration: 0.6,
-                        }}
+                        className="absolute inset-0 rounded-2xl border border-blue-400/40 pointer-events-none"
+                        layoutId="hoverBorder"
                       />
                     )}
                   </div>

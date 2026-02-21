@@ -9,13 +9,12 @@ export function ModulesPreview() {
     "Props",
     "State",
     "Hooks",
-    "Routing",
   ];
 
   return (
     <section
       id="modules"
-      className="relative z-20 py-20 bg-gradient-to-b from-black/30 to-black/20"
+      className="relative z-20 py-10 bg-gradient-to-b from-black/30 to-black/20"
     >
       <div className="max-w-7xl mx-auto px-6">
         {/* SECTION TITLE */}

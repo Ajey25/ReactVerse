@@ -1,4 +1,5 @@
 import InterviewProgress from "../models/InterviewProgress.js";
+import { calculateTotalXP } from "./calculateTotalXP.js";
 
 export const markPageCompleted = async (req, res) => {
   try {
@@ -19,6 +20,9 @@ export const markPageCompleted = async (req, res) => {
         levelNo,
         pageNo,
       });
+
+      // 🔥 SYNC XP IMMEDIATELY - Updates both xp and totalXP
+      await calculateTotalXP(userId);
 
       return res.status(201).json({
         success: true,

@@ -8,6 +8,7 @@ export const useProgress = () => useContext(ProgressContext);
 export const ProgressProvider = ({ children }) => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true); // Start as true
+  const BASE_URL = import.meta.env.VITE_BASE_URL;
 
   // 🔥 Fetch user progress (XP, lessons, streak, etc.)
   const fetchProgress = async () => {
@@ -22,12 +23,9 @@ export const ProgressProvider = ({ children }) => {
         return;
       }
 
-      const res = await fetch(
-        `http://localhost:5000/api/progress/stats/${user._id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const res = await fetch(`${BASE_URL}/api/progress/stats/${user._id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       const data = await res.json();
       if (data.success) {

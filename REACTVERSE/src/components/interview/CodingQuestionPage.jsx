@@ -1,287 +1,553 @@
 import { useParams } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Editor from "@monaco-editor/react";
-import { codingQuestions } from "../../data/codingQuestions";
 import useSandboxRunner from "../../hooks/useSandboxRunner";
+import axios from "axios";
+import { useProgress } from "../../context/ProgressContext";
+import toast from "react-hot-toast";
+import Commet from "react-loading-indicators/Commet";
+import AnswerPopup from "./AnswerPopup"; // ✅ Import the popup
+import { Eye } from "lucide-react"; // ✅ Import icon
 
 export default function CodingQuestionPage() {
   const { levelId } = useParams();
-  const question = codingQuestions[levelId];
+  const BASE_URL = import.meta.env.VITE_BASE_URL;
+  const user = JSON.parse(localStorage.getItem("user"));
+  const userId = user?._id;
 
-  const [code, setCode] = useState(question.starterCode);
+  const [question, setQuestion] = useState(null);
+  const [code, setCode] = useState("");
   const [testResults, setTestResults] = useState([]);
   const [running, setRunning] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [submitted, setSubmitted] = useState(false);
+  const [showAnswerPopup, setShowAnswerPopup] = useState(false); // ✅ Popup state
 
+  const { refreshProgress } = useProgress();
   const { run } = useSandboxRunner();
+
+  useEffect(() => {
+    async function fetchQuestion() {
+      try {
+        setLoading(true);
+        const res = await fetch(`${BASE_URL}/api/coding/${levelId}`);
+        if (!res.ok) {
+          throw new Error("Failed to fetch question");
+        }
+        const data = await res.json();
+        setQuestion(data);
+        setCode(data.starterCode || "");
+        setTestResults([]);
+        setSubmitted(false);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchQuestion();
+  }, [levelId, BASE_URL]);
+
+  const extractComponentName = (code) => {
+    const match = code.match(/function\s+(\w+)\s*\(/);
+    return match ? match[1] : "Counter";
+  };
 
   async function runTests() {
     setRunning(true);
-
-    const results = await run(code, question.tests);
-    if (!Array.isArray(results)) {
-      setTestResults([]);
+    setTestResults([]);
+    try {
+      const componentName = extractComponentName(code);
+      const results = await run(code, question.tests, componentName);
+      if (results && Array.isArray(results)) {
+        setTestResults(results);
+      } else {
+        throw new Error("No results returned from test runner");
+      }
+    } catch (error) {
+      console.error("Run tests error:", error);
+      setTestResults([
+        {
+          id: 0,
+          desc: "Test execution failed",
+          pass: false,
+          error:
+            error.message ||
+            "Could not run tests. Please check your code syntax.",
+        },
+      ]);
+    } finally {
       setRunning(false);
-      return;
     }
-    setTestResults(results);
-
-    setRunning(false);
   }
+
+  const submitSolution = async () => {
+    if (!allPassed) return;
+
+    const questionId = Number(levelId);
+    const xpMap = {
+      1: 20,
+      2: 30,
+      3: 50,
+    };
+    const xp = xpMap[questionId] || 20;
+
+    try {
+      setLoading(true);
+      const res = await axios.post(`${BASE_URL}/api/codingprogress`, {
+        userId,
+        questionId,
+        xp,
+      });
+      console.log("Submitted:", res.data);
+      toast.success("Solution submitted! ✨");
+      setSubmitted(true);
+      refreshProgress();
+    } catch (err) {
+      console.error(err);
+      if (err.response && err.response.data?.message === "Already submitted") {
+        toast.error(
+          "You've already submitted this question. No XP this time 😄"
+        );
+        setSubmitted(true);
+      } else {
+        toast.error("Submission failed. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const allPassed = testResults.length > 0 && testResults.every((t) => t.pass);
   const passedCount = testResults.filter((t) => t.pass).length;
 
+  if (loading && !question) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-900">
+        <Commet color="#60a5fa" size="medium" text="" textColor="" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-900">
+        <div className="text-red-500 text-xl">Error: {error}</div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* QUESTION HEADER */}
-        <div className="bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 backdrop-blur-sm border border-indigo-500/20 rounded-2xl p-6 shadow-2xl">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-3">
-                <span className="px-3 py-1 bg-indigo-500/20 text-indigo-300 text-xs font-semibold rounded-full border border-indigo-500/30">
-                  Level {levelId}
-                </span>
-                {allPassed && (
-                  <span className="px-3 py-1 bg-green-500/20 text-green-300 text-xs font-semibold rounded-full border border-green-500/30 animate-pulse">
-                    ✓ All Tests Passed
-                  </span>
-                )}
-              </div>
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
-                {question.title}
-              </h1>
-              <p className="text-slate-300 text-base leading-relaxed">
-                {question.description}
-              </p>
-              <p>{question.hints}</p>
-            </div>
-            {testResults.length > 0 && (
-              <div className="flex flex-col items-center justify-center bg-slate-800/50 rounded-xl p-4 min-w-[100px] border border-slate-700">
-                <div className="text-4xl font-bold text-white mb-1">
-                  {passedCount}/{testResults.length}
-                </div>
-                <div className="text-xs text-slate-400 uppercase tracking-wider">
-                  Passed
-                </div>
-              </div>
+    <div
+      className="min-h-screen p-4"
+      style={{ background: "var(--bg)", color: "var(--text)" }}
+    >
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div
+          className="rounded-lg p-6 mb-4"
+          style={{
+            background: "var(--card-bg)",
+            border: "1px solid var(--card-border)",
+            boxShadow: "var(--shadow-soft)",
+          }}
+        >
+          <div className="flex items-center gap-3 mb-3">
+            <span
+              className="px-3 py-1 rounded-full text-sm"
+              style={{
+                background: "var(--success)",
+                color: "var(--success-text)",
+              }}
+            >
+              Level {levelId}
+            </span>
+            {allPassed && (
+              <span
+                className="px-3 py-1 rounded-full text-sm"
+                style={{
+                  background: "var(--success)",
+                  color: "var(--success-text)",
+                }}
+              >
+                ✓ All Tests Passed
+              </span>
+            )}
+            {submitted && (
+              <span
+                className="px-3 py-1 rounded-full text-sm"
+                style={{
+                  background: "#f59e0b",
+                  color: "#ffffff",
+                }}
+              >
+                ✨ Submitted
+              </span>
             )}
           </div>
+
+          <h1
+            className="text-3xl font-bold mb-4"
+            style={{ color: "var(--text-bold)" }}
+          >
+            {question?.title}
+          </h1>
+
+          <p className="mb-4" style={{ color: "var(--answer-text)" }}>
+            {question?.description}
+          </p>
+
+          {question?.hints && (
+            <div
+              className="rounded p-3 mb-4"
+              style={{
+                background: "var(--answer-bg)",
+                border: "1px solid var(--answer-border)",
+              }}
+            >
+              <strong style={{ color: "var(--text-bold)" }}>💡 Hint:</strong>{" "}
+              <span style={{ color: "var(--answer-text)" }}>
+                {question.hints}
+              </span>
+            </div>
+          )}
+
+          {question?.requirements && question.requirements.length > 0 && (
+            <div
+              className="rounded p-4"
+              style={{
+                background: "var(--answer-bg)",
+                border: "1px solid var(--answer-border)",
+              }}
+            >
+              <h3
+                className="font-semibold mb-2"
+                style={{ color: "var(--text-bold)" }}
+              >
+                Requirements
+              </h3>
+              <ul className="list-disc list-inside space-y-1">
+                {question.requirements.map((req, idx) => (
+                  <li key={idx} style={{ color: "var(--answer-text)" }}>
+                    {req}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
 
-        {/* CODE EDITOR */}
-        <div className="bg-slate-900/50 backdrop-blur-sm rounded-2xl border border-slate-700/50 shadow-2xl overflow-hidden">
-          <div className="bg-gradient-to-r from-slate-800 to-slate-800/80 px-5 py-3 border-b border-slate-700/50 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="flex gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
-                <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
-                <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
+        {/* Pass Summary */}
+        {testResults.length > 0 && (
+          <div
+            className="p-4 rounded-lg mb-4"
+            style={{
+              background: allPassed
+                ? "rgba(34, 197, 94, 0.1)"
+                : "rgba(239, 68, 68, 0.1)",
+              border: allPassed
+                ? "1px solid var(--success)"
+                : "1px solid #ef4444",
+              boxShadow: "var(--shadow-soft)",
+            }}
+          >
+            <div
+              className="text-2xl font-bold"
+              style={{
+                color: allPassed ? "var(--success)" : "#ef4444",
+              }}
+            >
+              {passedCount}/{testResults.length} Passed
+            </div>
+          </div>
+        )}
+
+        {/* Editor Section */}
+        <div
+          className="rounded-lg overflow-hidden mb-4"
+          style={{
+            background: "var(--card-bg)",
+            border: "1px solid var(--card-border)",
+            boxShadow: "var(--shadow-medium)",
+          }}
+        >
+          <div
+            className="px-4 py-2 flex items-center justify-between"
+            style={{
+              background: "var(--answer-bg)",
+              borderBottom: "1px solid var(--border)",
+            }}
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex gap-2">
+                <div
+                  className="w-3 h-3 rounded-full"
+                  style={{ background: "#ef4444" }}
+                ></div>
+                <div
+                  className="w-3 h-3 rounded-full"
+                  style={{ background: "#f59e0b" }}
+                ></div>
+                <div
+                  className="w-3 h-3 rounded-full"
+                  style={{ background: "#22c55e" }}
+                ></div>
               </div>
-              <span className="ml-3 text-sm font-medium text-slate-300">
+              <span className="text-sm" style={{ color: "var(--text)" }}>
                 solution.jsx
               </span>
             </div>
+
             <div className="flex gap-2">
+              {/* ✅ NEW: View Answer Button */}
+              <button
+                onClick={() => setShowAnswerPopup(true)}
+                className="px-4 py-2 rounded text-sm font-medium transition-all flex items-center gap-2"
+                style={{
+                  background: "var(--tag-bg)",
+                  color: "var(--text)",
+                  border: "1px solid var(--tag-border)",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = "var(--tag-bg-hover)";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = "var(--tag-bg)";
+                }}
+              >
+                <Eye size={16} />
+                View Answer
+              </button>
+
               <button
                 onClick={runTests}
                 disabled={running}
-                className={`
-                  px-5 py-2 rounded-lg font-semibold text-sm transition-all duration-200
-                  ${
-                    running
-                      ? "bg-indigo-600/50 text-indigo-200 cursor-wait"
-                      : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40"
-                  }
-                `}
+                className="px-4 py-2 rounded text-sm font-medium transition-all"
+                style={{
+                  background: running ? "var(--button-disabled)" : "#3b82f6",
+                  color: running ? "var(--button-disabled-text)" : "#ffffff",
+                  cursor: running ? "not-allowed" : "pointer",
+                  opacity: running ? 0.6 : 1,
+                }}
+                onMouseEnter={(e) => {
+                  if (!running) e.target.style.background = "#2563eb";
+                }}
+                onMouseLeave={(e) => {
+                  if (!running) e.target.style.background = "#3b82f6";
+                }}
               >
-                {running ? (
-                  <span className="flex items-center gap-2">
-                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                        fill="none"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    Running...
-                  </span>
-                ) : (
-                  "▶ Run Tests"
-                )}
+                {running ? "Running..." : "▶ Run Tests"}
               </button>
               <button
-                disabled={!allPassed}
-                className={`
-                  px-5 py-2 rounded-lg font-semibold text-sm transition-all duration-200
-                  ${
-                    allPassed
-                      ? "bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white shadow-lg shadow-green-500/25 hover:shadow-green-500/40"
-                      : "bg-slate-700/50 text-slate-500 cursor-not-allowed"
-                  }
-                `}
+                onClick={submitSolution}
+                disabled={!allPassed || submitted || loading}
+                className="px-4 py-2 rounded text-sm font-medium transition-all"
+                style={{
+                  background:
+                    !allPassed || submitted || loading
+                      ? "var(--button-disabled)"
+                      : "var(--success)",
+                  color:
+                    !allPassed || submitted || loading
+                      ? "var(--button-disabled-text)"
+                      : "var(--success-text)",
+                  cursor:
+                    !allPassed || submitted || loading
+                      ? "not-allowed"
+                      : "pointer",
+                  opacity: !allPassed || submitted || loading ? 0.6 : 1,
+                }}
+                onMouseEnter={(e) => {
+                  if (allPassed && !submitted && !loading)
+                    e.target.style.background = "#16a34a";
+                }}
+                onMouseLeave={(e) => {
+                  if (allPassed && !submitted && !loading)
+                    e.target.style.background = "var(--success)";
+                }}
               >
-                ✓ Submit Solution
+                ✓ Submit
               </button>
             </div>
           </div>
-          <div className="p-4">
+
+          <div className="h-96">
             <Editor
-              height="60vh"
-              theme="vs-dark"
+              height="100%"
               defaultLanguage="javascript"
               value={code}
               onChange={(v) => setCode(v)}
+              theme="vs-dark"
               options={{
                 minimap: { enabled: false },
                 fontSize: 14,
-                lineHeight: 22,
+                lineHeight: 20,
                 fontFamily: "'Fira Code', 'Consolas', monospace",
-                padding: { top: 16, bottom: 16 },
+                padding: { top: 12, bottom: 12 },
                 scrollBeyondLastLine: false,
                 renderLineHighlight: "all",
                 cursorBlinking: "smooth",
+                wordWrap: "on",
+                wrappingIndent: "indent",
               }}
             />
           </div>
         </div>
 
-        {/* TESTS AND OUTPUT */}
-        <div className="grid grid-cols-2 gap-6">
-          {/* TESTS PANEL */}
-          <div className="bg-slate-900/50 backdrop-blur-sm rounded-2xl border border-slate-700/50 shadow-2xl overflow-hidden">
-            <div className="bg-gradient-to-r from-slate-800 to-slate-800/80 px-5 py-3 border-b border-slate-700/50">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <svg
-                  className="w-5 h-5 text-indigo-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-                  />
-                </svg>
-                Test Cases
-              </h2>
+        {/* Tests and Preview - Same as before */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Tests Panel */}
+          <div
+            className="rounded-lg overflow-hidden"
+            style={{
+              background: "var(--card-bg)",
+              border: "1px solid var(--card-border)",
+              boxShadow: "var(--shadow-soft)",
+            }}
+          >
+            <div
+              className="px-4 py-2 font-semibold"
+              style={{
+                background: "var(--answer-bg)",
+                color: "var(--text-bold)",
+                borderBottom: "1px solid var(--border)",
+              }}
+            >
+              Test Cases
             </div>
-
-            <div className="p-5 max-h-96 overflow-y-auto">
+            <div
+              className="p-4 space-y-3 max-h-96 overflow-y-auto"
+              style={{
+                scrollbarWidth: "thin",
+                scrollbarColor: "var(--scrollbar-thumb) var(--scrollbar-track)",
+              }}
+            >
               {testResults.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <svg
-                    className="w-16 h-16 text-slate-600 mb-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.5}
-                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    />
-                  </svg>
-                  <p className="text-slate-400 text-sm">
-                    Click "Run Tests" to see results
-                  </p>
+                <div
+                  className="text-center py-8"
+                  style={{ color: "var(--tag-text)" }}
+                >
+                  Click "Run Tests" to see results
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {testResults.map((t, idx) => (
-                    <div
-                      key={t.id}
-                      className={`
-                        p-4 rounded-xl border transition-all duration-200
-                        ${
-                          t.pass
-                            ? "bg-green-500/10 border-green-500/30 hover:bg-green-500/15"
-                            : "bg-red-500/10 border-red-500/30 hover:bg-red-500/15"
-                        }
-                      `}
-                    >
-                      <div className="flex items-start gap-3">
+                testResults.map((t, idx) => (
+                  <div
+                    key={idx}
+                    className="p-3 rounded"
+                    style={{
+                      background: t.pass
+                        ? "rgba(34, 197, 94, 0.1)"
+                        : "rgba(239, 68, 68, 0.1)",
+                      border: t.pass
+                        ? "1px solid var(--success)"
+                        : "1px solid #ef4444",
+                    }}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div
+                        className="w-6 h-6 rounded-full flex items-center justify-center"
+                        style={{
+                          background: t.pass ? "var(--success)" : "#ef4444",
+                          color: "#ffffff",
+                        }}
+                      >
+                        {t.pass ? "✓" : "✕"}
+                      </div>
+                      <div className="flex-1">
                         <div
-                          className={`
-                          flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs
-                          ${
-                            t.pass
-                              ? "bg-green-500 text-white"
-                              : "bg-red-500 text-white"
-                          }
-                        `}
+                          className="font-semibold"
+                          style={{ color: "var(--text-bold)" }}
                         >
-                          {t.pass ? "✓" : "✕"}
+                          Test {idx + 1}
                         </div>
-                        <div className="flex-1">
-                          <div className="text-sm font-medium text-white mb-1">
-                            Test {idx + 1}
-                          </div>
+                        <div
+                          className="text-sm"
+                          style={{ color: "var(--answer-text)" }}
+                        >
+                          {t.desc}
+                        </div>
+                        {!t.pass && t.error && (
                           <div
-                            className={`text-sm ${
-                              t.pass ? "text-green-200" : "text-red-200"
-                            }`}
+                            className="mt-2 p-2 rounded text-xs font-mono"
+                            style={{
+                              background: "var(--answer-bg)",
+                              color: "#ef4444",
+                              border: "1px solid var(--border)",
+                            }}
                           >
-                            {t.desc}
+                            {t.error}
                           </div>
-                          {!t.pass && t.error && (
-                            <div className="mt-2 text-xs text-red-300 bg-red-950/30 p-2 rounded border border-red-800/30">
-                              {t.error}
-                            </div>
-                          )}
-                        </div>
+                        )}
                       </div>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))
               )}
             </div>
           </div>
 
-          {/* OUTPUT PANEL */}
-          <div className="bg-slate-900/50 backdrop-blur-sm rounded-2xl border border-slate-700/50 shadow-2xl overflow-hidden">
-            <div className="bg-gradient-to-r from-slate-800 to-slate-800/80 px-5 py-3 border-b border-slate-700/50">
-              <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                <svg
-                  className="w-5 h-5 text-purple-400"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                  />
-                </svg>
-                Live Preview
-              </h2>
+          {/* Preview Panel */}
+          <div
+            className="rounded-lg overflow-hidden"
+            style={{
+              background: "var(--card-bg)",
+              border: "1px solid var(--card-border)",
+              boxShadow: "var(--shadow-soft)",
+            }}
+          >
+            <div
+              className="px-4 py-2 font-semibold"
+              style={{
+                background: "var(--answer-bg)",
+                color: "var(--text-bold)",
+                borderBottom: "1px solid var(--border)",
+              }}
+            >
+              Live Preview
             </div>
-
-            <div className="p-5 h-96">
+            <div>
               <iframe
-                id="preview"
-                title="output"
-                sandbox="allow-scripts"
-                className="w-full h-full rounded-xl bg-white shadow-inner"
+                title="preview"
+                className="w-full h-96 border-0"
+                srcDoc={`
+                <html>
+                  <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <style>${question?.styles || ""}</style>
+                  </head>
+                  <body style="margin: 0; padding: 12px; overflow: auto;">
+                    <div id="root"></div>
+                    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+                    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+                    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+                    <script type="text/babel">
+                      const { useState } = React;
+                      ${code
+                        .replace(/import\s+.*?from\s+['"].*?['"];?/g, "")
+                        .replace(/export\s+default\s+/g, "")
+                        .replace(/export\s+(?!default)[a-zA-Z]+/g, "")}
+                      const root = ReactDOM.createRoot(document.getElementById('root'));
+                      const Component = ${extractComponentName(code)};
+                      root.render(<Component />);
+                    </script>
+                  </body>
+                </html>
+              `}
               />
             </div>
           </div>
         </div>
       </div>
+
+      {/* ✅ Answer Popup */}
+      {showAnswerPopup && (
+        <AnswerPopup
+          answer={question?.answer || "// No solution available"}
+          onClose={() => setShowAnswerPopup(false)}
+        />
+      )}
     </div>
   );
 }
