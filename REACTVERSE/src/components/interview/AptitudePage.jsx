@@ -115,7 +115,7 @@ export default function AptitudePage() {
       {/* HEADER */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         {/* Title */}
-        <h1 className="text-lg sm:text-2xl font-bold leading-tight">
+        <h1 className="text-lg sm:text-2xl font-bold leading-tight p2">
           Aptitude Test – Level {levelId}
         </h1>
 
