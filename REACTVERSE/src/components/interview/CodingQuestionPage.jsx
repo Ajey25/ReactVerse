@@ -108,7 +108,7 @@ export default function CodingQuestionPage() {
       console.error(err);
       if (err.response && err.response.data?.message === "Already submitted") {
         toast.error(
-          "You've already submitted this question. No XP this time 😄"
+          "You've already submitted this question. No XP this time 😄",
         );
         setSubmitted(true);
       } else {
@@ -272,77 +272,64 @@ export default function CodingQuestionPage() {
             boxShadow: "var(--shadow-medium)",
           }}
         >
+          {/* HEADER */}
           <div
-            className="px-4 py-2 flex items-center justify-between"
+            className="px-3 sm:px-4 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
             style={{
               background: "var(--answer-bg)",
               borderBottom: "1px solid var(--border)",
             }}
           >
+            {/* LEFT SIDE */}
             <div className="flex items-center gap-3">
               <div className="flex gap-2">
-                <div
-                  className="w-3 h-3 rounded-full"
-                  style={{ background: "#ef4444" }}
-                ></div>
-                <div
-                  className="w-3 h-3 rounded-full"
-                  style={{ background: "#f59e0b" }}
-                ></div>
-                <div
-                  className="w-3 h-3 rounded-full"
-                  style={{ background: "#22c55e" }}
-                ></div>
+                <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                <div className="w-3 h-3 rounded-full bg-green-500"></div>
               </div>
-              <span className="text-sm" style={{ color: "var(--text)" }}>
+              <span
+                className="text-sm truncate"
+                style={{ color: "var(--text)" }}
+              >
                 solution.jsx
               </span>
             </div>
 
-            <div className="flex gap-2">
-              {/* ✅ NEW: View Answer Button */}
+            {/* RIGHT SIDE BUTTONS */}
+            <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+              {/* View Answer */}
               <button
                 onClick={() => setShowAnswerPopup(true)}
-                className="px-4 py-2 rounded text-sm font-medium transition-all flex items-center gap-2"
+                className="flex-1 sm:flex-none px-4 py-2.5 rounded text-sm font-medium flex items-center justify-center gap-2 border transition"
                 style={{
                   background: "var(--tag-bg)",
                   color: "var(--text)",
-                  border: "1px solid var(--tag-border)",
-                }}
-                onMouseEnter={(e) => {
-                  e.target.style.background = "var(--tag-bg-hover)";
-                }}
-                onMouseLeave={(e) => {
-                  e.target.style.background = "var(--tag-bg)";
+                  borderColor: "var(--tag-border)",
                 }}
               >
                 <Eye size={16} />
-                View Answer
+                View
               </button>
 
+              {/* Run Tests */}
               <button
                 onClick={runTests}
                 disabled={running}
-                className="px-4 py-2 rounded text-sm font-medium transition-all"
+                className="flex-1 sm:flex-none px-4 py-2.5 rounded text-sm font-medium transition"
                 style={{
                   background: running ? "var(--button-disabled)" : "#3b82f6",
                   color: running ? "var(--button-disabled-text)" : "#ffffff",
-                  cursor: running ? "not-allowed" : "pointer",
                   opacity: running ? 0.6 : 1,
                 }}
-                onMouseEnter={(e) => {
-                  if (!running) e.target.style.background = "#2563eb";
-                }}
-                onMouseLeave={(e) => {
-                  if (!running) e.target.style.background = "#3b82f6";
-                }}
               >
-                {running ? "Running..." : "▶ Run Tests"}
+                {running ? "Running..." : "▶ Run"}
               </button>
+
+              {/* Submit */}
               <button
                 onClick={submitSolution}
                 disabled={!allPassed || submitted || loading}
-                className="px-4 py-2 rounded text-sm font-medium transition-all"
+                className="flex-1 sm:flex-none px-4 py-2.5 rounded text-sm font-medium transition"
                 style={{
                   background:
                     !allPassed || submitted || loading
@@ -352,19 +339,7 @@ export default function CodingQuestionPage() {
                     !allPassed || submitted || loading
                       ? "var(--button-disabled-text)"
                       : "var(--success-text)",
-                  cursor:
-                    !allPassed || submitted || loading
-                      ? "not-allowed"
-                      : "pointer",
                   opacity: !allPassed || submitted || loading ? 0.6 : 1,
-                }}
-                onMouseEnter={(e) => {
-                  if (allPassed && !submitted && !loading)
-                    e.target.style.background = "#16a34a";
-                }}
-                onMouseLeave={(e) => {
-                  if (allPassed && !submitted && !loading)
-                    e.target.style.background = "var(--success)";
                 }}
               >
                 ✓ Submit
@@ -372,7 +347,8 @@ export default function CodingQuestionPage() {
             </div>
           </div>
 
-          <div className="h-96">
+          {/* EDITOR */}
+          <div className="h-[60vh] sm:h-96">
             <Editor
               height="100%"
               defaultLanguage="javascript"
@@ -381,7 +357,7 @@ export default function CodingQuestionPage() {
               theme="vs-dark"
               options={{
                 minimap: { enabled: false },
-                fontSize: 14,
+                fontSize: 13,
                 lineHeight: 20,
                 fontFamily: "'Fira Code', 'Consolas', monospace",
                 padding: { top: 12, bottom: 12 },
