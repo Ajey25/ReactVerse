@@ -177,7 +177,8 @@ export default function AptitudePage() {
         <div className="border rounded-xl p-4 bg-[var(--card-bg)]">
           <h3 className="font-semibold mb-3 text-base">Questions</h3>
 
-          <div className="grid grid-cols-6 sm:grid-cols-5 gap-2">
+          {/* 5 QUESTIONS PER ROW */}
+          <div className="grid grid-cols-5 gap-1.5">
             {questions.map((q, idx) => {
               const attempted = answers[q.questionNo];
               const isActive = idx === currentQ;
@@ -187,8 +188,9 @@ export default function AptitudePage() {
                   key={q._id}
                   onClick={() => setCurrentQ(idx)}
                   className={`
-                  w-9 h-9 sm:w-10 sm:h-10
-                  rounded-md text-xs sm:text-sm font-bold
+                  w-11 h-11
+                  rounded-md
+                  text-sm font-bold
                   transition-colors
                   ${
                     isActive
@@ -211,25 +213,6 @@ export default function AptitudePage() {
             <p>⚪ Not Attempted</p>
           </div>
         </div>
-      </div>
-
-      {/* 🔥 MOBILE STICKY SUBMIT */}
-      <div className="fixed bottom-0 left-0 right-0 sm:hidden p-3 bg-[var(--card-bg)] border-t border-[var(--border)]">
-        <button
-          onClick={submitTest}
-          disabled={!allAnswered}
-          className={`
-          w-full py-3 rounded-xl font-semibold
-          transition-all duration-300
-          ${
-            allAnswered
-              ? "bg-green-600 text-white shadow-lg active:scale-95"
-              : "bg-green-600/30 text-white/60 cursor-not-allowed"
-          }
-        `}
-        >
-          🚀 Complete Test
-        </button>
       </div>
     </div>
   );
