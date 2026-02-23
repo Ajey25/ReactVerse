@@ -39,35 +39,36 @@ export default function Profile() {
 
   return (
     <div
-      className=" p-4"
+      className="px-3 sm:px-4 py-4"
       style={{ background: "var(--bg)", color: "var(--text)" }}
     >
-      <div className="max-w-5xl mx-auto p-4">
+      <div className="max-w-5xl mx-auto">
         <div
-          className="rounded-3xl border p-4 "
+          className="rounded-3xl border p-3 sm:p-4"
           style={{
             background: "var(--card-bg)",
             borderColor: "var(--border)",
           }}
         >
-          <div className="flex items-center justify-between  px-4">
-            <h1 className="text-2xl font-semibold">Profile</h1>
+          {/* HEADER TOP */}
+          <div className="flex items-center justify-between px-2 sm:px-4 mb-4">
+            <h1 className="text-xl sm:text-2xl font-semibold">Profile</h1>
 
             <button
               onClick={() => navigate("/dashboard")}
               className="text-sm opacity-70 hover:opacity-100"
             >
-              ← Back to Dashboard
+              ← Back
             </button>
           </div>
 
-          <header
-            className="flex flex-col sm:flex-row gap-6 mb-0 items-stretch p-4 rounded-2xl "
-            style={{ background: "var(--card-bg)" }}
-          >
-            {/* LEFT HALF */}
+          {/* HEADER CONTENT */}
+          <header className="flex flex-col gap-4 sm:flex-row sm:gap-6 p-3 sm:p-4 rounded-2xl">
+            {/* LEFT SIDE */}
             <div
-              className="flex flex-col sm:flex-row gap-6 flex-1 p-3 rounded-2xl border items-center sm:items-start"
+              className="flex flex-col items-center text-center 
+              sm:flex-row sm:items-start sm:text-left 
+              gap-4 flex-1 p-4 rounded-2xl border"
               style={{
                 background: "var(--card-bg)",
                 borderColor: "var(--border)",
@@ -75,11 +76,13 @@ export default function Profile() {
             >
               <Avatar user={user} />
 
-              <div className="text-center sm:text-left">
-                <h1 className="text-3xl font-semibold tracking-tight">
+              <div>
+                <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight">
                   {user.name}
-                </h1>
-                <p className="text-sm opacity-70 mt-1">{user.email}</p>
+                </h2>
+                <p className="text-sm opacity-70 mt-1 break-all">
+                  {user.email}
+                </p>
 
                 <div className="flex flex-wrap gap-2 mt-4 justify-center sm:justify-start">
                   <Badge text={profile.currentStatus} />
@@ -88,16 +91,16 @@ export default function Profile() {
               </div>
             </div>
 
-            {/* RIGHT HALF */}
+            {/* RIGHT SIDE */}
             <div
-              className="flex-1 px-4 py-2 rounded-2xl border flex flex-col"
+              className="flex-1 p-4 rounded-2xl border flex flex-col"
               style={{
                 background: "var(--card-bg)",
                 borderColor: "var(--border)",
               }}
             >
-              <h2 className="font-semibold text-2xl mb-0">About</h2>
-              <p className="text-sm opacity-80 leading-relaxed">
+              <h2 className="font-semibold text-lg sm:text-xl mb-2">About</h2>
+              <p className="text-sm sm:text-base opacity-80 leading-relaxed">
                 {profile.bio || "No bio added yet."}
               </p>
             </div>
@@ -105,7 +108,7 @@ export default function Profile() {
 
           {/* TABS */}
           <div
-            className="flex gap-6 border-b mb-4 px-6"
+            className="flex gap-6 border-b mb-4 px-2 sm:px-6 overflow-x-auto no-scrollbar"
             style={{ borderColor: "var(--border)" }}
           >
             <Tab active={tab === "overview"} onClick={() => setTab("overview")}>
@@ -120,26 +123,25 @@ export default function Profile() {
           </div>
 
           {/* CONTENT */}
-          {/* CONTENT */}
-          <div className="px-6">
+          <div className="px-2 sm:px-6">
             <div className="min-h-[220px]">
               {tab === "overview" && (
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   <Section title="Personal Information">
-                    <Info icon={<Mail />} value={user.email} />
-                    <Info icon={<Phone />} value={profile.phone} />
+                    <Info icon={<Mail size={16} />} value={user.email} />
+                    <Info icon={<Phone size={16} />} value={profile.phone} />
                     <Info
-                      icon={<MapPin />}
+                      icon={<MapPin size={16} />}
                       label="Location"
                       value={profile.location}
                     />
                     <Info
-                      icon={<User />}
+                      icon={<User size={16} />}
                       label="Gender"
                       value={profile.gender}
                     />
                     <Info
-                      icon={<MapPin />}
+                      icon={<MapPin size={16} />}
                       label="Country"
                       value={profile.country}
                     />
@@ -147,22 +149,22 @@ export default function Profile() {
 
                   <Section title="Education">
                     <Info
-                      icon={<GraduationCap />}
+                      icon={<GraduationCap size={16} />}
                       label="College"
                       value={profile.college}
                     />
                     <Info
-                      icon={<User />}
+                      icon={<User size={16} />}
                       label="Degree"
                       value={profile.degree}
                     />
                     <Info
-                      icon={<User />}
+                      icon={<User size={16} />}
                       label="Branch"
                       value={profile.branch}
                     />
                     <Info
-                      icon={<Calendar />}
+                      icon={<Calendar size={16} />}
                       label="Graduation Year"
                       value={profile.graduationYear}
                     />
@@ -217,13 +219,13 @@ function Avatar({ user }) {
         <img
           src={user.avatar}
           alt="avatar"
-          className="w-28 h-28 rounded-xl object-cover border"
+          className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl object-cover border"
           style={{ borderColor: "var(--border)" }}
         />
       ) : (
         <div
-          className="w-28 h-28 rounded-xl flex items-center justify-center
-          text-3xl font-semibold border"
+          className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl flex items-center justify-center
+          text-2xl sm:text-3xl font-semibold border"
           style={{
             background: "var(--card-bg)",
             borderColor: "var(--border)",
@@ -239,13 +241,13 @@ function Avatar({ user }) {
 function Section({ title, children }) {
   return (
     <div
-      className="p-6 rounded-2xl border"
+      className="p-4 sm:p-6 rounded-2xl border"
       style={{
         background: "var(--card-bg)",
         borderColor: "var(--border)",
       }}
     >
-      <h2 className="font-semibold mb-4">{title}</h2>
+      <h2 className="font-semibold mb-4 text-base sm:text-lg">{title}</h2>
       {children}
     </div>
   );
@@ -255,7 +257,7 @@ function Tab({ active, children, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`pb-3 text-sm font-medium transition ${
+      className={`px-2 pb-3 text-sm font-medium whitespace-nowrap transition ${
         active ? "border-b-2" : "opacity-60 hover:opacity-100"
       }`}
       style={{
@@ -285,7 +287,7 @@ function Badge({ text }) {
 function Info({ icon, label, value }) {
   if (!value) return null;
   return (
-    <div className="flex items-center gap-2 text-sm opacity-80 mb-2">
+    <div className="flex items-center gap-2 text-sm opacity-80 mb-2 break-words">
       {icon}
       <span>{label ? `${label}: ${value}` : value}</span>
     </div>
@@ -294,7 +296,7 @@ function Info({ icon, label, value }) {
 
 function LinkRow({ label, value }) {
   return (
-    <div className="flex items-center gap-2 text-sm mb-2">
+    <div className="flex items-center gap-2 text-sm mb-2 break-all">
       <LinkIcon size={16} />
       <span className="opacity-70">{label} :</span>
 
@@ -303,7 +305,7 @@ function LinkRow({ label, value }) {
           href={value}
           target="_blank"
           rel="noreferrer"
-          className="underline opacity-80 hover:opacity-100 break-all"
+          className="underline opacity-80 hover:opacity-100"
         >
           {value}
         </a>

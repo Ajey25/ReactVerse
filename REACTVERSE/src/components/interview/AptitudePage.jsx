@@ -113,21 +113,29 @@ export default function AptitudePage() {
   return (
     <div className="max-w-7xl mx-auto p-2">
       {/* HEADER */}
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold">Aptitude Test – Level {levelId}</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+        {/* Title */}
+        <h1 className="text-lg sm:text-2xl font-bold leading-tight">
+          Aptitude Test – Level {levelId}
+        </h1>
 
-        {/* ✅ Wider, inactive-by-default submit button */}
+        {/* Submit Button */}
         <button
           onClick={submitTest}
           disabled={!allAnswered}
           className={`
-            px-14 py-2 rounded-xl font-semibold transition-all duration-300
-            ${
-              allAnswered
-                ? "bg-green-600 hover:bg-green-700 text-white shadow-lg"
-                : "bg-green-600/30 text-white/60 cursor-not-allowed"
-            }
-          `}
+      w-full sm:w-auto
+      py-3 sm:py-2
+      px-6 sm:px-10
+      rounded-xl font-semibold
+      transition-all duration-300
+      text-sm sm:text-base
+      ${
+        allAnswered
+          ? "bg-green-600 hover:bg-green-700 text-white shadow-lg active:scale-95"
+          : "bg-green-600/30 text-white/60 cursor-not-allowed"
+      }
+    `}
         >
           🚀 Complete Test
         </button>
@@ -185,8 +193,8 @@ export default function AptitudePage() {
                      isActive
                        ? "bg-[var(--primary,#3b82f6)] text-[var(--on-primary,#fff)]"
                        : attempted
-                       ? "bg-[var(--success,#22c55e)] text-[var(--on-success,#fff)]"
-                       : "bg-[var(--muted-bg,#e5e7eb)] text-[var(--text-muted,#6b7280)] border border-[var(--border)]"
+                         ? "bg-[var(--success,#22c55e)] text-[var(--on-success,#fff)]"
+                         : "bg-[var(--muted-bg,#e5e7eb)] text-[var(--text-muted,#6b7280)] border border-[var(--border)]"
                    }`}
                 >
                   {q.questionNo}
