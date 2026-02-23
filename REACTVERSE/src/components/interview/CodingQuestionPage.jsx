@@ -146,16 +146,17 @@ export default function CodingQuestionPage() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div
-          className="rounded-lg p-6 mb-4"
+          className="rounded-lg p-4 sm:p-6 mb-4"
           style={{
             background: "var(--card-bg)",
             border: "1px solid var(--card-border)",
             boxShadow: "var(--shadow-soft)",
           }}
         >
-          <div className="flex items-center gap-3 mb-3">
+          {/* TOP BADGES */}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3">
             <span
-              className="px-3 py-1 rounded-full text-sm"
+              className="px-3 py-1 rounded-full text-xs sm:text-sm"
               style={{
                 background: "var(--success)",
                 color: "var(--success-text)",
@@ -163,9 +164,10 @@ export default function CodingQuestionPage() {
             >
               Level {levelId}
             </span>
+
             {allPassed && (
               <span
-                className="px-3 py-1 rounded-full text-sm"
+                className="px-3 py-1 rounded-full text-xs sm:text-sm"
                 style={{
                   background: "var(--success)",
                   color: "var(--success-text)",
@@ -174,9 +176,10 @@ export default function CodingQuestionPage() {
                 ✓ All Tests Passed
               </span>
             )}
+
             {submitted && (
               <span
-                className="px-3 py-1 rounded-full text-sm"
+                className="px-3 py-1 rounded-full text-xs sm:text-sm"
                 style={{
                   background: "#f59e0b",
                   color: "#ffffff",
@@ -187,47 +190,63 @@ export default function CodingQuestionPage() {
             )}
           </div>
 
+          {/* TITLE */}
           <h1
-            className="text-3xl font-bold mb-4"
+            className="text-xl sm:text-3xl font-bold mb-3 sm:mb-4 leading-tight"
             style={{ color: "var(--text-bold)" }}
           >
             {question?.title}
           </h1>
 
-          <p className="mb-4" style={{ color: "var(--answer-text)" }}>
+          {/* DESCRIPTION */}
+          <p
+            className="mb-4 text-sm sm:text-base leading-relaxed"
+            style={{ color: "var(--answer-text)" }}
+          >
             {question?.description}
           </p>
 
+          {/* HINT */}
           {question?.hints && (
             <div
-              className="rounded p-3 mb-4"
+              className="rounded p-3 sm:p-4 mb-4"
               style={{
                 background: "var(--answer-bg)",
                 border: "1px solid var(--answer-border)",
               }}
             >
-              <strong style={{ color: "var(--text-bold)" }}>💡 Hint:</strong>{" "}
-              <span style={{ color: "var(--answer-text)" }}>
+              <strong
+                className="block mb-1 text-sm sm:text-base"
+                style={{ color: "var(--text-bold)" }}
+              >
+                💡 Hint:
+              </strong>
+              <span
+                className="text-sm sm:text-base leading-relaxed"
+                style={{ color: "var(--answer-text)" }}
+              >
                 {question.hints}
               </span>
             </div>
           )}
 
+          {/* REQUIREMENTS */}
           {question?.requirements && question.requirements.length > 0 && (
             <div
-              className="rounded p-4"
+              className="rounded p-3 sm:p-4"
               style={{
                 background: "var(--answer-bg)",
                 border: "1px solid var(--answer-border)",
               }}
             >
               <h3
-                className="font-semibold mb-2"
+                className="font-semibold mb-2 text-sm sm:text-base"
                 style={{ color: "var(--text-bold)" }}
               >
                 Requirements
               </h3>
-              <ul className="list-disc list-inside space-y-1">
+
+              <ul className="list-disc list-inside space-y-1 text-sm sm:text-base">
                 {question.requirements.map((req, idx) => (
                   <li key={idx} style={{ color: "var(--answer-text)" }}>
                     {req}
@@ -237,7 +256,6 @@ export default function CodingQuestionPage() {
             </div>
           )}
         </div>
-
         {/* Pass Summary */}
         {testResults.length > 0 && (
           <div
