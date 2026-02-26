@@ -1,101 +1,98 @@
-🚀 ReactVerse
+# 🚀 ReactVerse
 
-ReactVerse is a full-stack React learning and interview preparation platform built to help developers strengthen core concepts, practice structured questions, and compete through a leaderboard-based XP system.
+ReactVerse is a full-stack **React learning and interview preparation platform** built to help developers strengthen core concepts, practice structured interview questions, solve aptitude problems based on top interview patterns, use a coding playground with live preview for interview preparation, and compete through a leaderboard-based XP system.
 
 It combines authentication, learning modules, XP tracking, and a responsive UI into one focused platform.
 
-✨ Core Features
-🔐 Authentication
+---
 
-Email + password authentication
+## ✨ Core Features
 
-Google OAuth 2.0 login
+### 🔐 Authentication
+- Email + password authentication  
+- Google OAuth 2.0 login  
+- Works both locally and on Vercel  
+- Secure session handling  
 
-Works both locally and on Vercel
+---
 
-Secure session handling
+### 📚 Learning & Practice
+- React concept-based questions  
+- Coding & theoretical practice modules  
+- Structured scoring system  
+- Performance tracking  
 
-📚 Learning & Practice
+---
 
-React concept-based questions
+### ⚡ XP System
+- XP sync logic is centralized  
+- All XP-granting actions use shared logic  
+- Prevents inconsistent XP updates  
+- Designed for scalability  
 
-Coding & theoretical practice modules
+---
 
-Structured scoring system
+### 🏆 Leaderboard
+- XP-based ranking  
+- Paginated leaderboard  
+- Mobile-friendly design  
+- Optimized queries for performance  
 
-Performance tracking
+---
 
-⚡ XP System
+### 📱 Responsive Design
+- Fully responsive layout  
+- Components page works on desktop & mobile  
+- Tailwind CSS-based UI  
+- Clean and modern interface  
 
-XP sync logic is centralized
+---
 
-All XP-granting actions use a shared logic controller
-
-Prevents inconsistent XP updates
-
-Supports scalable XP expansion
-
-🏆 Leaderboard
-
-XP-based ranking
-
-Paginated leaderboard
-
-Mobile-friendly design
-
-Optimized queries for performance
-
-📱 Responsive Design
-
-Fully responsive layout
-
-Components page works on desktop & mobile
-
-Tailwind CSS-based UI
-
-Clean and modern interface
-
-📸 Gallery
+## 📸 Gallery
 A quick look at ReactVerse in action:
-<img width="1362" height="728" alt="landingpage1" src="https://github.com/user-attachments/assets/23e9cbad-68a4-46fc-9c62-ce6bdafe36ed" />
-<img width="1366" height="728" alt="dashboard2" src="https://github.com/user-attachments/assets/94635046-61cf-4218-afaf-19c2de35504d" />
-<img width="1366" height="724" alt="interview3" src="https://github.com/user-attachments/assets/4db759f5-3c91-4ccd-8134-da4dbfa5abc6" />
-<img width="1366" height="724" alt="apti4" src="https://github.com/user-attachments/assets/d83fc35a-0548-48c5-bed7-a3d0f4f67165" />
-<img width="1366" height="724" alt="coding5" src="https://github.com/user-attachments/assets/d9999aaf-ea5a-4883-967e-8b53d91378ea" />
-<img width="1366" height="722" alt="reanking6" src="https://github.com/user-attachments/assets/1ec01e74-c933-43fa-89df-fecb4b9d2192" />
 
-🛠 Tech Stack
-Frontend
+<table>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/23e9cbad-68a4-46fc-9c62-ce6bdafe36ed" width="100%"/></td>
+    <td><img src="https://github.com/user-attachments/assets/94635046-61cf-4218-afaf-19c2de35504d" width="100%"/></td>
+    <td><img src="https://github.com/user-attachments/assets/4db759f5-3c91-4ccd-8134-da4dbfa5abc6" width="100%"/></td>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/d83fc35a-0548-48c5-bed7-a3d0f4f67165" width="100%"/></td>
+    <td><img src="https://github.com/user-attachments/assets/d9999aaf-ea5a-4883-967e-8b53d91378ea" width="100%"/></td>
+    <td><img src="https://github.com/user-attachments/assets/1ec01e74-c933-43fa-89df-fecb4b9d2192" width="100%"/></td>
+  </tr>
+</table>
 
-React.js (Vite)
+---
 
-Tailwind CSS
+## 🛠 Tech Stack
 
-React Router
+### Frontend
+- React.js (Vite)
+- Tailwind CSS
+- React Router
+- Context API
 
-Context API
+### Backend
+- Node.js
+- Express.js
 
-Backend
+### Database
+- MongoDB (Atlas ready)
 
-Node.js
+### Authentication
+- Email-based auth
+- Google OAuth 2.0
 
-Express.js
+### Deployment
+- Vercel
 
-Database
+---
 
-MongoDB (Atlas ready)
+## 🏗 Project Structure
 
-Authentication
-
-Email-based auth
-
-Google OAuth 2.0
-
-Deployment
-
-Vercel
-
-🏗 Project Structure
+```
 reactverse/
 │
 ├── client/
@@ -114,78 +111,102 @@ reactverse/
 ├── DEPLOYMENT.md
 ├── README-VERCEL.md
 └── README.md
-⚙️ Installation
+```
+
+---
+
+## ⚙️ Installation
 
 Clone the repository:
 
+```bash
 git clone https://github.com/your-username/reactverse.git
 cd reactverse
-🔧 Backend Setup
+```
+
+---
+
+### 🔧 Backend Setup
+
+```bash
 cd server
 npm install
+```
 
-Create a .env file:
+Create a `.env` file inside `server`:
 
+```
 PORT=5000
 MONGO_URI=your_mongodb_connection_string
 SESSION_SECRET=your_session_secret
 
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
+```
 
 Start backend:
 
+```bash
 npm run dev
-🎨 Frontend Setup
+```
+
+---
+
+### 🎨 Frontend Setup
+
+```bash
 cd client
 npm install
 npm run dev
+```
 
-Open:
+Open in browser:
 
+```
 http://localhost:5173
-🚀 Deployment
+```
 
-ReactVerse is configured to work on Vercel.
+---
 
-For deployment steps, see:
+## 🚀 Deployment
 
-DEPLOYMENT.md
+ReactVerse is configured to work on **Vercel**.
 
-README-VERCEL.md
+For detailed deployment instructions, see:
 
-🧪 Future Improvements
+- `DEPLOYMENT.md`
+- `README-VERCEL.md`
 
-Add unit / integration tests for core controllers
+---
 
-Add rate limiting & improved error handling for auth routes
+## 🧪 Future Improvements
 
-Add dark/light theme toggle UI
+- Add unit / integration tests for core controllers  
+- Add rate limiting & improved error handling for auth routes  
+- Add dark/light theme toggle UI  
+- Expand coding question library  
+- Support dynamic XP weight configuration  
 
-Expand coding questions library
+---
 
-Support dynamic XP weight configuration
+## 🤝 Contributing
 
-📈 Why This Project Matters
-
-ReactVerse isn’t just a quiz app.
-It’s a structured learning system designed to:
-
-Reinforce React fundamentals
-
-Track measurable growth
-
-Encourage competitive learning
-
-Scale into a full interview prep ecosystem
-
-🤝 Contributing
-
-Pull requests are welcome.
+Pull requests are welcome.  
 For major changes, please open an issue first to discuss improvements.
 
-Contact Us
-Email: reactverseproject@gmail.com
-LinkedIn: https://www.linkedin.com/in/ajay-prajapati-4912981b3/
+---
+
+## ☎ Contact Us
+- Email: reactverseproject@gmail.com
+- LinkedIn: https://www.linkedin.com/in/ajay-prajapati-4912981b3/
+
+---
+
+
+
+
+
+
+
 
 
